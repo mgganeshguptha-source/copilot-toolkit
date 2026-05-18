@@ -61,12 +61,12 @@ alternative names or locations.
 ## Skill Files
 
 - **Location:** `.github/skills/SKILL-NAME/`
-- **Format:** `skill.md` (always lowercase, always this exact name)
+- **Format:** `SKILL.md` (always lowercase, always this exact name)
 - **Assets** (templates, examples) go in `.github/skills/SKILL-NAME/assets/`
 - **Examples:**
-  - `.github/skills/build-context/skill.md`
+  - `.github/skills/build-context/SKILL.md`
   - `.github/skills/build-context/assets/context-template.md`
-  - `.github/skills/build-prompt-steps/skill.md`
+  - `.github/skills/build-prompt-steps/SKILL.md`
 
 ---
 
@@ -98,5 +98,5 @@ shared key, not the timestamp.
 | Prompt steps | `.github/story-prompt-steps/` | `STORY-DESCRIPTION-prompt-steps-YYMMDD-HHMMSS.md` |
 | Repo-wide instructions | `.github/` | `copilot-instructions.md` |
 | Path-specific rules | `.github/instructions/` | `NAME.instructions.md` |
-| Skill entry point | `.github/skills/SKILL-NAME/` | `skill.md` |
+| Skill entry point | `.github/skills/SKILL-NAME/` | `SKILL.md` |
 | Skill assets | `.github/skills/SKILL-NAME/assets/` | any descriptive name |
