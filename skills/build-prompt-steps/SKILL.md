@@ -326,8 +326,25 @@ Each step's suggested prompt must:
   filename** (the one captured in step 2 of the workflow), not by a
   generic placeholder. Same applies to `.github/copilot-instructions.md`
   — reference by literal path.
-- Reference code files by path so the prompt works even if the developer
-  is in a fresh session.
+- For Step 1 (inventory) only: seed the affected-files list with concrete
+  paths, but frame it as a starting point — *"start with these, add any
+  genuinely required files, remove any not impacted."* The seeded paths
+  are candidates, never the closed set.
+- For all later steps: reference the **inventory confirmed in Step 1**
+  (e.g. *"using the impacted-files list confirmed in Step 1…"*) rather
+  than re-listing the full path set. Name a specific file only when the
+  step acts on one file the developer must not confuse with another.
+  Never restate the full path list in every step — doing so freezes the
+  file set before Step 1 can correct it, and hides files Step 1 may have
+  added (e.g. a Repository or Validator).
+- If a step's work could belong in a layer not yet named in the seed list
+  (e.g. the repository/query layer for a filtering change), say so
+  explicitly and let the design step decide — do not silently route all
+  work through the controller just because the seed list named it.
+- Still keep each prompt self-contained for a fresh session: the developer
+  re-attaches the plan file, so *"the inventory confirmed in Step 1"* is a
+  resolvable reference within the same plan, not a dependency on chat
+  history.
 - Reference earlier steps by number when needed (e.g. *"using the option
   chosen in step 2"*) so the developer knows when to paste the plan back
   into context.
@@ -358,7 +375,11 @@ should pick the right ones for the story, not include all of them.
 - **Inventory step** (always step 1) — Copilot lists affected files
   with one line each describing their current role. Doesn't propose
   changes yet. Lets the developer confirm the file list before
-  implementation begins.
+  implementation begins. This confirmed list becomes the **canonical
+  file set** for all later steps — later steps reference it rather than
+  re-deriving or re-listing paths. Step 1 may add files the seed list
+  missed (e.g. a Repository or Validator); later steps must honour those
+  additions.
 - **Design decision step** — for consequential choices (which JPA
   approach, which Angular pattern). Copilot proposes 2–3 options with
   pros/cons; developer picks. Implementation is a separate later step.
@@ -396,6 +417,10 @@ Before showing the plan to the developer, verify:
 - [ ] Validation step is present and second-to-last
 - [ ] Convention drift step is present near the end
 - [ ] No step has more than one logical change
+- [ ] Later steps reference Step 1's confirmed inventory, not a
+      re-hardcoded full path list; seeded paths are framed as candidates
+- [ ] No design-relevant layer (e.g. repository/query) is excluded
+      merely because Step 1's seed list didn't name it
 - [ ] Every step's prompt is self-contained (works after a session
       restart)
 - [ ] Every step's review checkpoint is concrete and verifiable

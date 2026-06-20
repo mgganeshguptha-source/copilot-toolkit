@@ -7,10 +7,10 @@ description: >
   Copilot, or shares a design alongside a story. Works across Angular
   frontend, Spring Boot backend, and full stack work, and across new
   development, enhancements, and bug fixes. The skill enforces a hard quality
-  bar — it refuses to output context with vague language like "should work
+  bar — it efuses to output context with vague language like "should work
   better", "displayed properly", or "performance should be acceptable", and
   it asks targeted questions until acceptance criteria are testable. The
-  final context is written to a timestamped file under
+  final context is written to a timestamperd file under
   .github/story-context-files/, not just shown in chat.
 ---
 
