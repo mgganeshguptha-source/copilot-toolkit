@@ -253,6 +253,9 @@ criteria section.
    the file's current contents rather than guessing. If the response
    doesn't reference real function names or imports from the file,
    ask Copilot to read the file first.
+5. After Step 1, record the confirmed file set in the Impacted Files
+   block (IDs F1, F2, …). Later steps refer to files by ID; if you don't
+   fill the block, those references won't resolve.
 
 ---
 
@@ -266,24 +269,50 @@ or the plan before proceeding.
 
 ---
 
+## Impacted Files
+
+[Populated by Step 1 after Copilot confirms the file set. Until Step 1
+runs, this lists the seed candidates. Each file gets a stable ID that
+every later step references instead of repeating the path.]
+
+| ID | Path | Role |
+|----|------|------|
+| F1 | [path] | [one-line role] |
+| F2 | [path] | [one-line role] |
+| …  | …      | …             |
+
+> Later steps refer to files by ID (e.g. "edit F3 and F5"), never by
+> re-listing paths. If Step 1 discovers a file the seed missed, add a new
+> ID here — do not renumber existing IDs.
+
+---
+
 ## Step 1 — [One-line goal]
 
 **Goal:** [One sentence describing what this step accomplishes.]
 
 **Suggested prompt:**
 
-> [The prompt the developer can paste into Copilot Chat. Should be
-> self-contained: reference files by path, reference context.md sections
-> by name, don't rely on prior conversation state.]
+> [The prompt the developer can paste into Copilot Chat. Seeds the file
+> list with concrete paths framed as candidates, asks Copilot to add any
+> genuinely required files — including non-code files like DB
+> schema/migration scripts, seed data, or config — and to remove any not
+> impacted. Returns path + one-line role per file. Does not propose edits.]
 
-**Review checkpoint:** [What the developer should verify before moving
-to the next step. Concrete and specific.]
+**Review checkpoint:** [Developer confirms the file set, then records it
+in the Impacted Files block above with IDs. Concrete and specific.]
 
 ---
 
 ## Step 2 — [...]
 
-[Same format.]
+**Suggested prompt:**
+
+> [Later-step prompts reference files by ID from the Impacted Files block
+> — e.g. "edit F3 (PetController)" — not by re-listing the full path.
+> Paths live in the table; steps cite IDs.]
+
+[Same format otherwise.]
 
 ---
 
@@ -326,25 +355,27 @@ Each step's suggested prompt must:
   filename** (the one captured in step 2 of the workflow), not by a
   generic placeholder. Same applies to `.github/copilot-instructions.md`
   — reference by literal path.
+- The plan carries a single **Impacted Files** block (a table of
+  `ID | Path | Role`) between Pre-flight and Step 1. This is the only
+  place full file paths appear, apart from Step 1's seed list.
 - For Step 1 (inventory) only: seed the affected-files list with concrete
-  paths, but frame it as a starting point — *"start with these, add any
-  genuinely required files, remove any not impacted."* The seeded paths
-  are candidates, never the closed set.
-- For all later steps: reference the **inventory confirmed in Step 1**
-  (e.g. *"using the impacted-files list confirmed in Step 1…"*) rather
-  than re-listing the full path set. Name a specific file only when the
-  step acts on one file the developer must not confuse with another.
-  Never restate the full path list in every step — doing so freezes the
-  file set before Step 1 can correct it, and hides files Step 1 may have
-  added (e.g. a Repository or Validator).
-- If a step's work could belong in a layer not yet named in the seed list
-  (e.g. the repository/query layer for a filtering change), say so
-  explicitly and let the design step decide — do not silently route all
-  work through the controller just because the seed list named it.
-- Still keep each prompt self-contained for a fresh session: the developer
-  re-attaches the plan file, so *"the inventory confirmed in Step 1"* is a
-  resolvable reference within the same plan, not a dependency on chat
-  history.
+  paths, framed as a starting point — *"start with these, add any
+  genuinely required files (including non-code files: DB schema/migration
+  scripts, seed data, config), remove any not impacted."* Step 1's output
+  populates the Impacted Files block with one ID per confirmed file.
+- For all later steps: reference files by their **ID** from the Impacted
+  Files block (e.g. *"edit F3 (PetController) and F5"*). Do **not**
+  re-list full paths in later-step prompts. Paths live in the table; steps
+  cite IDs. This keeps prompts self-contained — the developer re-attaches
+  the plan file, so an ID resolves by scrolling up, with no dependency on
+  chat history.
+- If Step 1 discovers a file the seed missed, add a new ID to the block
+  (do not renumber existing IDs); every later step that touches it cites
+  the new ID.
+- If a step's work could belong in a layer not yet in the block (e.g. the
+  repository/query layer for a filtering change), say so explicitly and
+  let the design step decide — do not silently route all work through the
+  controller just because the seed list named it.
 - Reference earlier steps by number when needed (e.g. *"using the option
   chosen in step 2"*) so the developer knows when to paste the plan back
   into context.
@@ -373,13 +404,15 @@ Most plans include some combination of these step types. The skill
 should pick the right ones for the story, not include all of them.
 
 - **Inventory step** (always step 1) — Copilot lists affected files
-  with one line each describing their current role. Doesn't propose
-  changes yet. Lets the developer confirm the file list before
-  implementation begins. This confirmed list becomes the **canonical
-  file set** for all later steps — later steps reference it rather than
-  re-deriving or re-listing paths. Step 1 may add files the seed list
-  missed (e.g. a Repository or Validator); later steps must honour those
-  additions.
+  with one line each describing their current role, and explicitly checks
+  for **non-code files the change requires** — DB schema/migration
+  scripts, seed data, config — not just the obvious source files.
+  Doesn't propose changes yet. The confirmed list populates the
+  **Impacted Files block**, assigning one stable ID per file. This block
+  is the canonical file set: all later steps reference files by ID, never
+  by re-listing paths. Step 1 may add files the seed list missed (e.g. a
+  Repository, Validator, or schema script) — each gets a new ID and later
+  steps must honour it.
 - **Design decision step** — for consequential choices (which JPA
   approach, which Angular pattern). Copilot proposes 2–3 options with
   pros/cons; developer picks. Implementation is a separate later step.
@@ -417,8 +450,11 @@ Before showing the plan to the developer, verify:
 - [ ] Validation step is present and second-to-last
 - [ ] Convention drift step is present near the end
 - [ ] No step has more than one logical change
-- [ ] Later steps reference Step 1's confirmed inventory, not a
-      re-hardcoded full path list; seeded paths are framed as candidates
+- [ ] An Impacted Files block exists, populated with `ID | Path | Role`
+- [ ] No full file path appears anywhere outside the Impacted Files block
+      and Step 1's seed list — every later-step file reference uses an ID
+- [ ] Step 1's prompt asks Copilot to check for required non-code files
+      (schema/migration/seed/config), not just source files
 - [ ] No design-relevant layer (e.g. repository/query) is excluded
       merely because Step 1's seed list didn't name it
 - [ ] Every step's prompt is self-contained (works after a session
