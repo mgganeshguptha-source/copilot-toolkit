@@ -23,8 +23,13 @@ reactive types. Do not use Spring MVC / blocking servlet patterns.
 - The signature follows the generated interface and includes the standard parameters:
   `String messageId` (trace header), `Mono<RequestType> body`, `String appName`, and
   `ServerWebExchange exchange`.
-- Never block. Do not call `.block()`, `.toFuture().get()`, or any blocking API inside
-  a controller.
+- **Never block — strictly prohibited.** Do not call `.block()`, `.blockFirst()`,
+  `.blockLast()`, `.toFuture().get()`, or any blocking API inside a controller. Blocking
+  in a reactive chain starves the event-loop threads; the damage is invisible locally and
+  only surfaces under concurrent load in the deployed service. This is a hard team rule.
+- **Do not use `.collectList()`** (or a `.collect(...)` that buffers an unbounded stream) —
+  it caused the same class of production performance problems. Use `.buffer()` (preferred)
+  or `.reduce()` depending on the scenario.
 
 ## The reactive chain
 
@@ -63,7 +68,8 @@ Build the whole handler as a single reactive chain. A typical order is:
 
 ## Do not
 
-- Do not block anywhere in the chain.
+- Do not block anywhere in the chain (`.block()`, `.blockFirst()`, `.blockLast()`) — strict ban.
+- Do not use `.collectList()` — use `.buffer()` or `.reduce()` instead.
 - Do not add `@RequestMapping` (it is in the generated `*Api` interface).
 - Do not throw exceptions for input validation — return an empty `Mono` from a filter.
 - Do not add a per-service `@ControllerAdvice`.

@@ -30,7 +30,9 @@ and `Mono`-returning.
 - The OAuth2 bearer token is attached automatically by
   `ServerOAuth2AuthorizedClientExchangeFilterFunction` on every `WebClient` call — do **not**
   manually add an `Authorization` header.
-- All methods return `Mono<ResponseType>` (or `Flux<T>`). Never block.
+- All methods return `Mono<ResponseType>` (or `Flux<T>`). Never block — `.block()` and
+  `.collectList()` are strictly prohibited (they caused production performance problems
+  under load). Use `.buffer()` or `.reduce()` where you would have collected a list.
 
 ## Retries and timeouts
 
@@ -57,7 +59,8 @@ and `Mono`-returning.
 
 ## Do not
 
-- Do not block (`.block()`, `.toFuture().get()`, blocking I/O) anywhere in the chain.
+- Do not block (`.block()`, `.blockFirst()`, `.blockLast()`, `.toFuture().get()`, blocking I/O) — strict ban.
+- Do not use `.collectList()` — use `.buffer()` or `.reduce()` instead.
 - Do not manually attach the bearer token — the exchange filter does it.
 - Do not add retry logic — infrastructure owns retries.
 - Do not create a new `WebClient` inline — inject the qualified bean.
