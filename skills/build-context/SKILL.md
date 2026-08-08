@@ -85,6 +85,20 @@ back the vague phrase it's replacing.
 | `[NEEDS CLARIFICATION]: Search should work better - specify match rule` | `[NEEDS CLARIFICATION]: Match rule — case sensitivity, match type, fields searched` |
 | `[NEEDS CLARIFICATION]: Results displayed properly - specify layout` | `[NEEDS CLARIFICATION]: Result display — column order, sort, mobile layout` |
 
+**Banned-TOPIC scan (process/metadata clarifications).** Separately from the
+banned-phrase scan, before outputting `context.md`, scan every `[NEEDS
+CLARIFICATION]` line for process/project/staffing topics and DELETE any that
+match — they are never valid clarifications because they cannot be answered from a
+story and do not block implementation. A clarification is INVALID (remove it) if
+it asks about any of: owner, code owner, responsible team, PR reviewer, approver,
+sign-off, assignee, ticket/Jira/issue linkage, sprint, milestone, timeline,
+deadline, due date, priority, estimate, branch name, PR/commit naming, release or
+deployment process, or "who" should do/review/own anything. These are project
+metadata, not implementation gaps. For any such section the story leaves empty,
+write `N/A (not required for implementation)` in the body — do NOT emit a
+`[NEEDS CLARIFICATION]`. Only technical/behavioural ambiguities (see CI-mode rule
+6) may remain as clarifications after this scan.
+
 ---
 
 ## Workflow
@@ -115,7 +129,19 @@ back the vague phrase it's replacing.
    describe the missing dimension, not restate a vague phrase.
 5. Sections you CAN complete from the story, complete normally. Only genuinely
    ambiguous items become `[NEEDS CLARIFICATION]`.
-6. Write the file immediately to `.github/story-context-files/` and stop. Do not
+6. **Clarifications name TECHNICAL or BEHAVIOURAL gaps only.** A `[NEEDS
+   CLARIFICATION]` line is *only* for an implementation-relevant ambiguity the
+   coding phase cannot proceed without: input→output mapping, match/validation
+   rules, error responses, data shape, edge-case behaviour, API contract, reactive
+   pattern choice, and the like. It is **NEVER** for process, project, or
+   staffing metadata — do NOT raise clarifications about code owner, PR reviewer,
+   responsible team, approvers, sign-off, ticket/Jira linkage, sprint, timeline,
+   deadline, priority, branch/PR naming, or release process. None of these are
+   answerable from a story, none block implementation, and each one halts the
+   harness for nothing. If a template section asks for such metadata and the story
+   doesn't supply it, leave it blank or write `N/A (not required for
+   implementation)` — never a `[NEEDS CLARIFICATION]`.
+7. Write the file immediately to `.github/story-context-files/` and stop. Do not
    ask for approval.
 
 **Why:** a downstream harness gate scans the written context for
