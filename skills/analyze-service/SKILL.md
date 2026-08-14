@@ -4,7 +4,8 @@ description: >
   Generates a comprehensive Analysis Document by recursively tracing
   downstream calls from a chosen entry point — which can be an entire
   service, a single endpoint, a group of endpoints, or a specific
-  controller method. The skill fills a fixed template and writes a
+  controller method. The skill fills a fixed template — including a
+  Mermaid sequence diagram of the request flow — and writes a
   timestamped file. Trigger this skill when the user asks to analyze,
   document, or trace dependencies for any service, endpoint, group of
   endpoints, or controller method in the codebase — at any scope, named
@@ -119,6 +120,35 @@ discovered from the code and configuration.
   in scope must appear.
 - Do not add sections that are not in the template. Do not reorder them.
 
+### 3a. Generate the sequence diagram (Section 5)
+
+For each endpoint (or method, for method-scoped analysis) in scope,
+render a Mermaid sequence diagram of the request flow, using the
+dependencies discovered in step 2 and listed in Section 4.
+
+- Produce **one diagram per endpoint/target** in scope.
+- Use only participants and calls that were **actually traced** — never
+  invent a participant, call, or flow to make the diagram look
+  complete. A sparse-but-true diagram beats a rich-but-fabricated one.
+- Use real service and method names from the code, not placeholders.
+- Conventions: solid arrow `->>` for synchronous requests, dashed
+  arrow `-->>` for responses, `->>` with an `(async: <topic>)` label
+  for asynchronous publishes, and an `(EXTERNAL)` note for third-party
+  systems.
+- **Every arrow and message must be on a single line.** Never wrap a
+  long message across multiple lines — Mermaid fails to parse a message
+  that contains a line break (it reports a NEWLINE parse error). If a
+  message is long (e.g., a path plus a view name), keep it on one line
+  regardless of length; do not insert a line break to make it fit.
+- Show the happy path in the diagram; list major error branches as
+  bullets beneath it (e.g., downstream timeout → 503).
+- If a target has no downstream dependencies, still show the
+  Client ↔ Service exchange and note it is self-contained.
+
+The diagram must be consistent with Section 4 — the same participants
+and calls appear in both. If they disagree, the trace is wrong; fix it
+before writing the file.
+
 ### 4. Write the output to a file
 
 Write the completed document to a file — do not output it only inline
@@ -168,7 +198,8 @@ For a single file:
 > Analysis written to .github/service-analysis/<filename>
 >
 > ✅ Analysis complete — <N> endpoints documented, <M> downstream
-> dependencies traced across <D> levels.
+> dependencies traced across <D> levels, with sequence diagram(s)
+> included.
 >
 > Review any "_Not found in codebase — confirm with team_" markers
 > with the service owner before relying on this document.
@@ -180,7 +211,8 @@ For multiple files in one run:
 > - <filename-2>
 > - <filename-3>
 >
-> ✅ <N> analyses complete across <T> targets.
+> ✅ <N> analyses complete across <T> targets, each with a sequence
+> diagram.
 >
 > Review any "_Not found in codebase — confirm with team_" markers in
 > each document with the service owner before relying on them.
@@ -192,6 +224,12 @@ For multiple files in one run:
 - [ ] Every template section is present, in template order
 - [ ] No section was added, removed, or reordered relative to the template
 - [ ] Every endpoint or method in scope has its own sub-section
+- [ ] A Mermaid sequence diagram is present for each endpoint/target in
+      scope, using only actually-traced participants (no invented calls)
+- [ ] Every Mermaid arrow/message is on a single line — no message is
+      wrapped across line breaks (which causes a Mermaid parse error)
+- [ ] The sequence diagram is consistent with the Section 4 dependency
+      map — same participants, same calls
 - [ ] Dependency list excludes loggers/metrics/config/in-process utilities
 - [ ] Missing values use the exact `_Not found in codebase — confirm with
       team_` marker, not an inferred default
