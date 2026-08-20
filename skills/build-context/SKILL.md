@@ -13,6 +13,11 @@ description: >
   final context is written to a timestamped file under
   .github/story-context-files/, not just shown in chat.
 
+  Acceptance criteria are written in EARS syntax (WHEN/WHILE/IF-THEN ... SHALL),
+  carry stable identifiers (AC-1, AC-2.1) so tasks and validation can cite them,
+  and are marked `[ASSUMED]` when the model supplies a criterion the story never
+  asked for.
+
   In NON-INTERACTIVE / CI mode (no human to answer questions), the skill does
   NOT ask questions. Instead it records every gap as a `[NEEDS CLARIFICATION]`
   line in Section 8 of context.md and writes the file immediately. A downstream
@@ -101,6 +106,119 @@ write `N/A (not required for implementation)` in the body — do NOT emit a
 
 ---
 
+## Acceptance criteria — syntax, numbering, and provenance
+
+Three rules govern every AC. They exist so a downstream Validate step can check
+the delivered code **per criterion**, and so a human can tell at a glance which
+criteria came from the story and which the model supplied.
+
+### Rule 1 — EARS phrasing
+
+Write each AC using EARS (Easy Approach to Requirements Syntax). Pick the
+simplest pattern that fits; never force a trigger onto a requirement that is
+always true.
+
+| Pattern | Shape | Use when |
+|---|---|---|
+| Ubiquitous | THE \<system\> SHALL \<response\> | Always true, no trigger |
+| Event-driven | WHEN \<trigger\>, THE \<system\> SHALL \<response\> | A discrete event causes it |
+| State-driven | WHILE \<state\>, THE \<system\> SHALL \<response\> | True for the duration of a state |
+| Unwanted behaviour | IF \<condition\>, THEN THE \<system\> SHALL \<response\> | Error, invalid input, failure |
+| Optional | WHERE \<feature is present\>, THE \<system\> SHALL \<response\> | Conditional on a feature or config |
+
+The system name is the component under test in the reader's language — *the
+search endpoint*, *the owner list page*, *the catalog client* — never a class or
+file name (see "What never goes in context.md").
+
+**One sentence, at most three preconditions.** Beyond three the sentence stops
+being readable and the requirement is really several requirements — split it. If
+a criterion genuinely needs a matrix of conditions, put a short table under the
+AC rather than nesting clauses.
+
+**EARS is phrasing, not proof.** It makes a criterion unambiguous and
+individually testable. It does not verify that the code satisfies it — that is
+the Validate step's job. An EARS-shaped AC is evidence of clear intent and
+nothing more.
+
+**Include negative criteria where a wrong implementation is plausible.** If the
+story rules something out, say so: *THE search endpoint SHALL NOT perform
+partial or contains matching.* An unstated exclusion gets implemented anyway.
+
+### Rule 2 — Stable, addressable numbering
+
+Every AC carries an identifier so tasks, tests, and validation can cite it.
+
+- Flat stories: `AC-1`, `AC-2`, `AC-3` …
+- Stories split into several user stories (below): `AC-2.1`, `AC-2.2` — group
+  number first, criterion second.
+
+**Identifiers are permanent.** When a story is revised and the context
+regenerated, keep existing ACs on their original numbers, append new ones at the
+end, and mark removed ones `AC-4: [WITHDRAWN]` rather than renumbering. A
+renumber silently invalidates every downstream reference — a task that says
+"implements AC-3" now points at a different requirement, and nothing surfaces
+the change.
+
+### Rule 3 — Provenance: mark what the story did not ask for
+
+Once both are in SHALL form, a criterion the model invented reads exactly like
+one the business asked for. Structured phrasing makes invented requirements look
+authoritative, so provenance has to be explicit.
+
+Every AC is one of three kinds:
+
+| Marker | Meaning | Effect |
+|---|---|---|
+| *(none)* | Traceable to the story, the developer's answers, or an instruction file | Normal |
+| `[ASSUMED]` | The model added this; the story never mentioned the topic | Written and flagged, does not block |
+| `[NEEDS CLARIFICATION]` | A requested behaviour is under-specified and cannot be implemented without a decision | Blocks — the harness halts |
+
+**Choosing between the two markers — the test is what the story asked for:**
+
+- The story asks for a behaviour but leaves a dimension of it open →
+  `[NEEDS CLARIFICATION]`. *The story wants author validation but never states a
+  maximum length.*
+- The story never mentions the topic at all and the model believes it is needed
+  → `[ASSUMED]`. *The story asks for a filter dropdown; the model adds
+  accessibility criteria nobody requested.*
+
+`[ASSUMED]` is **not** an escape hatch from the clarification gate. Marking a
+missing dimension of a requested behaviour as `[ASSUMED]` bypasses the gate and
+ships a guess as a requirement. When genuinely torn, use
+`[NEEDS CLARIFICATION]` — a halted run costs one re-run; an invented requirement
+implemented as fact costs a rewrite.
+
+Format, with the basis stated so a reviewer can judge it quickly:
+
+```
+- AC-7: [ASSUMED] WHILE the specialty filter has keyboard focus, THE filter
+  SHALL display a visible focus indicator meeting WCAG 2.1 AA contrast.
+  Basis: accessibility standard in copilot-instructions.md; not requested in the story.
+```
+
+List every assumed criterion in **Section 9 — Assumptions** as well, so a
+reviewer can scan them without reading the full AC list.
+
+**Cap: if more than a third of the ACs are `[ASSUMED]`, stop.** The story is a
+seed, not a specification, and the context is mostly the model's invention. In
+interactive mode, tell the developer the story needs refining first. In CI mode,
+write the file and add one `[NEEDS CLARIFICATION]` line stating the story is too
+thin to specify.
+
+### When to split into multiple user stories
+
+Split when the story genuinely covers **distinct actors or distinct concerns**,
+each with its own user story line and AC group. A filter feature serving a pet
+owner browsing results and a developer needing a repository method is two
+concerns; say so.
+
+Do **not** split to inflate the count. Three ACs under one honest user story
+beat fifteen spread across five invented ones. Every group must trace to
+something the story or the developer actually asked for — a group that exists
+because the template had room for it is invention with extra structure.
+
+---
+
 ## Workflow
 
 ### 0. Mode detection — interactive vs non-interactive (CI)
@@ -141,7 +259,13 @@ write `N/A (not required for implementation)` in the body — do NOT emit a
    harness for nothing. If a template section asks for such metadata and the story
    doesn't supply it, leave it blank or write `N/A (not required for
    implementation)` — never a `[NEEDS CLARIFICATION]`.
-7. Write the file immediately to `.github/story-context-files/` and stop. Do not
+7. **Any criterion you add that the story never mentioned is marked
+   `[ASSUMED]`** (see "Acceptance criteria — syntax, numbering, and
+   provenance"). CI mode is where invention is most dangerous: there is no human
+   in the loop to notice that an AC nobody asked for has appeared in SHALL form.
+   Do not use `[ASSUMED]` to sidestep a genuine `[NEEDS CLARIFICATION]` — a
+   missing dimension of a *requested* behaviour always blocks.
+8. Write the file immediately to `.github/story-context-files/` and stop. Do not
    ask for approval.
 
 **Why:** a downstream harness gate scans the written context for
@@ -152,6 +276,8 @@ silently guessed. The marker is the contract between this skill and the harness.
 
 ---
 
+
+### 1. Check for copilot-instructions.md
 
 Before reading the story, check whether `.github/copilot-instructions.md`
 exists in the repo. This file holds the standard backend and frontend
@@ -470,6 +596,17 @@ must pass — if any fail, go back to section 4 and ask one more question.
       Acceptance Criteria, AND include load context (result-set size,
       concurrency) — not just a P95 number
 - [ ] Out of Scope has at least 3 explicit exclusions
+- [ ] Every AC uses an EARS pattern, is one sentence, and has at most three
+      preconditions
+- [ ] Every AC has a stable identifier (`AC-1`, `AC-2.1`) and no existing
+      identifier has been renumbered
+- [ ] Every AC not traceable to the story, the developer's answers, or an
+      instruction file is marked `[ASSUMED]` with its basis stated — and no
+      missing dimension of a *requested* behaviour has been marked `[ASSUMED]`
+      instead of `[NEEDS CLARIFICATION]`
+- [ ] `[ASSUMED]` criteria are under a third of the total AC count
+- [ ] No standing glossary of pre-existing domain terms (those belong in
+      instruction files) — only terms this story introduces
 
 ### 8. Write the context file
 
@@ -495,6 +632,9 @@ After writing the file, tell the developer:
 > Resolve any [NEEDS CLARIFICATION] items with your BA or PO before
 > running the build-prompt-steps skill.
 >
+> Review the [ASSUMED] criteria in Section 9 — I added those; the story
+> didn't ask for them. Confirm or delete each one before building.
+>
 > When you run build-prompt-steps, attach this context file to the chat.
 
 (Do not wrap the filename in backticks in the message to the developer
@@ -513,6 +653,18 @@ upfront:
 - Class, component, or service names
 - Database table or column names
 - Implementation approach ("use a new service", "add a guard", "extract a method")
+
+**A project glossary also does not belong here.** Domain terms that outlive the
+story — the ubiquitous nouns of the codebase — belong in a governed instruction
+file (`applyTo: **`), defined once and auto-injected into every story. Restating
+them per story is how five stories end up with five slightly different
+definitions of the same noun, and the spec becomes a drift surface rather than a
+source of truth.
+
+Define a term inside context.md only when **the story itself introduces it** —
+a new UI control, a new state, a new concept that does not yet exist in the
+codebase. Those go in Section 1 alongside the story summary, not in a standing
+glossary section.
 
 If a developer offers any of these, redirect briefly:
 
