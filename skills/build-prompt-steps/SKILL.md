@@ -10,7 +10,9 @@ description: >
   The skill writes the plan to a timestamped file under
   .github/story-prompt-steps/, structured as goal + suggested prompt +
   review checkpoint per step, with a standing instructions block at the
-  top. In NON-INTERACTIVE / CI mode it reads the newest context file from
+  top. Every step declares which acceptance criteria it implements
+  (AC-1, AC-2.1 …) and which steps it depends on, and the plan carries a
+  derived AC coverage matrix so no criterion is silently dropped. In NON-INTERACTIVE / CI mode it reads the newest context file from
   .github/story-context-files/ on disk (not a chat attachment) and produces
   the full plan in one pass without human checkpoints.
 ---
@@ -188,6 +190,29 @@ when present). Note:
 - Whether the UI interaction model is changing (Expected Behaviour
   describes new trigger/loading/empty/error states) or unchanged
 
+**Extract the acceptance-criteria list verbatim.** Capture every AC
+identifier (`AC-1`, `AC-2.1` …) with its full text. These identifiers are
+the plan's contract with the context file — every step cites them, the
+coverage matrix is built from them, and a later Validate step checks the
+delivered code against them. Never renumber, reword, or merge an AC when
+carrying it into the plan; if the ACs are hard to read, that is a problem
+to fix in context.md, not here.
+
+Three markers may appear on an AC. Handle each explicitly:
+
+| Marker | Meaning | What the plan does |
+|---|---|---|
+| *(none)* | Requested by the story | Plan steps for it normally |
+| `[ASSUMED]` | The model added it; the story never asked | Plan for it, **and** list it in Pre-flight so the developer can confirm or drop it before building |
+| `[WITHDRAWN]` | Removed in a later revision of the story | Skip entirely — no step, and omit from the coverage matrix |
+
+If context.md still uses unnumbered acceptance criteria (an older file
+predating AC identifiers), assign `AC-1`, `AC-2` … in the order they
+appear, and say so in Pre-flight: *"Context file has unnumbered ACs;
+identifiers assigned by this plan in document order."* The developer
+should regenerate the context so the numbering becomes stable, because
+identifiers invented here will not survive the next regeneration.
+
 ### 3. Lightweight codebase inventory
 
 Read enough of the codebase to know which files the plan will need to
@@ -227,6 +252,15 @@ tests. Tests verify the code does what the developer wrote it to do.
 Validation verifies the running system does what context.md asked for.
 The validation step walks every AC from context.md against the running
 application — manually, by the developer, no Copilot involved.
+
+**Map steps to acceptance criteria, not one step per AC.** Several ACs
+usually land in the same file change; forcing a 1:1 mapping inflates the
+step count and fragments a single coherent edit across several reviews.
+Equally, a step serving five unrelated ACs is doing too much. Let the
+natural unit of change decide the step, then record which ACs it serves.
+
+Steps and ACs are different axes. A step may implement several ACs; an AC
+may span several steps. Do not renumber steps to line up with AC ids.
 
 ### 5. Write the plan to a file
 
@@ -274,6 +308,38 @@ criteria section.
 **Stack:** [backend / frontend / full stack — from inference]
 **Total steps:** N
 **Unresolved clarifications:** [None / list each item if any]
+
+---
+
+## Acceptance criteria coverage
+
+[One row per AC from context.md, in order. DERIVED by inverting the
+**Implements:** fields on the steps below — never maintained by hand, so
+the two can never disagree.]
+
+| AC | Criterion (abbreviated) | Covered by |
+|---|---|---|
+| AC-1 | [first few words …] | Step 3 |
+| AC-2 | [first few words …] | Step 3, Step 5 |
+| AC-7 | [first few words …] | No step required — [reason]. Verified in Step N. |
+
+**Every row must name a step or state why none is needed.** A blank cell
+is a failure of the plan, not a formatting detail: an AC that no step
+covers and no one has excused is a requirement the plan does not deliver.
+The two cases look identical when the cell is empty — a negative criterion
+that needs no code, and a criterion the plan simply forgot. Forcing a
+written reason makes the first case a claim someone can challenge, and
+leaves the second nowhere to hide.
+
+Legitimate reasons a criterion needs no step:
+- Negative criterion satisfied by scope (*SHALL NOT match on firstName* —
+  satisfied by keeping the query on lastName)
+- Already true of existing behaviour and explicitly preserved
+- Enforced by a constraint rather than code (see Pre-flight)
+
+In every one of those cases the criterion is still checked in the final
+validation step. "No step required" means no code to write, never no
+verification.
 
 ---
 
@@ -331,6 +397,10 @@ every later step references instead of repeating the path.]
 ## Step 1 — [One-line goal]
 
 **Goal:** [One sentence describing what this step accomplishes.]
+**Implements:** [AC ids this step delivers, e.g. AC-1, AC-2 — or
+`— (enabling step, no AC)` for steps like file discovery or design
+decisions that produce no behaviour of their own.]
+**Depends on:** [Step numbers that must be complete first, or `—`.]
 
 **Suggested prompt:**
 
@@ -346,6 +416,10 @@ in the Impacted Files block above with IDs. Concrete and specific.]
 ---
 
 ## Step 2 — [...]
+
+**Goal:** [...]
+**Implements:** [...]
+**Depends on:** Step 1
 
 **Suggested prompt:**
 
@@ -387,6 +461,23 @@ Three assumptions appear in every plan, regardless of story:
    < 500ms is treated as a non-functional constraint, verified by load
    test, not by unit test."* This prevents performance targets from
    being mis-implemented as ACs in code.
+4. **Assumed criteria** — list every AC carrying `[ASSUMED]`, with its
+   id and the basis recorded in context.md. Example: *"AC-6 (sort by
+   lastName ascending) is an assumed criterion — the story does not
+   specify a sort order. Confirm or drop it before executing Step 3."*
+   These are criteria nobody asked for, and once they are phrased as
+   SHALL statements inside a plan they are indistinguishable from
+   requested ones. Surfacing them here is the last cheap moment to
+   remove one; after implementation it costs a rewrite. If there are
+   none, write *"No assumed criteria."* — the absence is worth stating.
+
+**Writing `Depends on:`.** List only *direct* prerequisites — the steps
+whose output this step consumes. Do not chain transitively: if Step 5
+needs Step 4 and Step 4 needs Step 3, Step 5 depends on Step 4 alone.
+Most steps depend on the one before them; the field earns its keep by
+showing where that is *not* true, so a developer can resequence or split
+the work across people. A step with `Depends on: —` can be started
+immediately.
 
 #### Step prompt construction rules
 
@@ -476,6 +567,13 @@ should pick the right ones for the story, not include all of them.
   or load requirements that aren't unit-testable. Documents how the
   target will be verified, doesn't try to verify it inline.
 
+Verification steps and inventory steps carry
+`**Implements:** — (enabling step, no AC)`. They earn their place by
+making other steps possible or provable, not by delivering a criterion —
+and saying so explicitly keeps the coverage matrix honest, because a step
+with no AC is otherwise indistinguishable from a step whose AC mapping
+was forgotten.
+
 ### 7. Self-check before showing the plan
 
 Before showing the plan to the developer, verify:
@@ -483,8 +581,9 @@ Before showing the plan to the developer, verify:
 - [ ] Standing instructions block is present at the top
 - [ ] Standing instructions and every step's prompt use the **actual
       attached context filename**, not a placeholder or generic path
-- [ ] Pre-flight section includes the three standard assumptions
-      (stack, behaviour preservation, non-functional handling)
+- [ ] Pre-flight section includes the four standard assumptions
+      (stack, behaviour preservation, non-functional handling, assumed
+      criteria)
 - [ ] If context.md has unresolved [NEEDS CLARIFICATION], pre-flight
       lists each one with the assumption the plan makes
 - [ ] Step 1 is an inventory step
@@ -502,6 +601,21 @@ Before showing the plan to the developer, verify:
       restart)
 - [ ] Every step's review checkpoint is concrete and verifiable
 - [ ] Done criteria section maps back to context.md ACs
+- [ ] **Every AC from context.md appears in the coverage matrix** — with
+      a step reference, or a written reason no step is needed. A blank
+      cell is a hard failure: fix the plan, do not ship the matrix with
+      a gap
+- [ ] Every AC id in the matrix matches context.md exactly — none
+      renumbered, reworded, merged, or invented
+- [ ] `[WITHDRAWN]` criteria are absent from both the matrix and the steps
+- [ ] Every step has `Implements:` naming AC ids, or is explicitly marked
+      `— (enabling step, no AC)`. A step that is neither is unexplained
+      scope: either it serves a requirement, or it should not be in the
+      plan
+- [ ] Every step has `Depends on:` listing direct prerequisites only, and
+      no dependency points forward to a later step
+- [ ] The validation step checks every AC individually by id, including
+      those marked "no step required"
 
 If any check fails, fix it before showing.
 
@@ -560,6 +674,8 @@ or the plan before proceeding.
 **Goal:** Decide how the contains-match across lastName, firstName,
 address, and telephone will be expressed in the repository — Spring
 Data JPA derived query, JPQL, or Specification.
+**Implements:** — (enabling step, no AC)
+**Depends on:** Step 1
 
 **Suggested prompt:**
 
@@ -592,20 +708,35 @@ is hard to undo later — take the time to choose.
 ```markdown
 ## Step 9 — Manual validation against acceptance criteria
 
-**Goal:** Walk through every acceptance criterion in context.md with
-the running application and confirm each passes.
+**Goal:** Walk every acceptance criterion in context.md against the
+running application and record a verdict per criterion.
+**Implements:** — (verification step, no AC)
+**Depends on:** Step 8
 
 **Suggested prompt:**
 
-> List the acceptance criteria from [attached context filename — e.g.
-> OwnerSearch-context.md]. For each AC, describe a manual test that
-> verifies it on the running application. Do not run the tests for me
-> — give me the checklist so I can verify in the browser.
+> Using [attached context filename — e.g. OwnerSearch-context.md],
+> produce a verification checklist with one row per acceptance
+> criterion, keyed by AC id. For each, give the concrete manual test —
+> the exact request or UI action, and the expected result. Include the
+> criteria the plan marked "no step required", since those still need
+> verifying. Do not run anything; give me the checklist.
 
-**Review checkpoint:** Walk through each AC manually in your browser
-or REST client. Mark each AC as pass, fail, or unclear. If any AC
-fails, identify which earlier step's output caused the failure and
-loop back to that step rather than patching at the end.
+**Review checkpoint:** Work the checklist against the running
+application and record pass / fail / unclear **per AC id** — not one
+verdict for the story. A criterion nobody can verify is `unclear`, not
+`pass`; recording it honestly is the point, because an unverifiable AC
+usually means the criterion was never testable as written and the
+context needs fixing.
+
+| AC | Verdict | Note |
+|---|---|---|
+| AC-1 | pass | |
+| AC-4 | fail | returns 404, expected 200 with empty array |
+| AC-6 | unclear | assumed criterion — confirm sort order was wanted |
+
+If any AC fails, identify which earlier step's output caused it and loop
+back to that step rather than patching at the end.
 ```
 
 ---
