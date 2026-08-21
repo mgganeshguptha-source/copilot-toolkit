@@ -18,6 +18,10 @@ description: >
   and are marked `[ASSUMED]` when the model supplies a criterion the story never
   asked for.
 
+  The context ends with a Story Quality Score (six dimensions, reported for
+  trend measurement, never gating) and a feasibility verdict (GO / NO_GO with a
+  named blocker class) that the harness enforces.
+
   In NON-INTERACTIVE / CI mode (no human to answer questions), the skill does
   NOT ask questions. Instead it records every gap as a `[NEEDS CLARIFICATION]`
   line in Section 8 of context.md and writes the file immediately. A downstream
@@ -607,6 +611,96 @@ must pass — if any fail, go back to section 4 and ask one more question.
 - [ ] `[ASSUMED]` criteria are under a third of the total AC count
 - [ ] No standing glossary of pre-existing domain terms (those belong in
       instruction files) — only terms this story introduces
+- [ ] Story Quality Score present, all six dimensions scored, deductions named
+      where marks were lost
+- [ ] Feasibility verdict present in canonical form (`**VERDICT: GO**` or
+      `**VERDICT: NO_GO**`), assessed only AFTER the ACs were final
+- [ ] No AC was changed, narrowed, or dropped because of a feasibility finding
+- [ ] Every `[BLOCKER]` names one of the four blocking classes — unclassifiable
+      concerns are written as notes, not blockers
+
+### 7a. Score the story, then assess feasibility
+
+Two final passes, in this order, both AFTER the acceptance criteria are final.
+
+#### Story Quality Score — reported, never gating
+
+Score the context you have just drafted on six dimensions, 0–20 each, and write
+the result into the file. The score exists to make story quality **measurable
+over time** — the trend across a team's stories is the useful signal, not any
+single number.
+
+| Dimension | Full marks when | Deduct when |
+|---|---|---|
+| Clarity | No banned phrases; every term concrete | Vague quantifier, unresolved pronoun |
+| Testability | Every AC has an observable outcome | An AC nobody could verify by running the system |
+| Traceability | Every AC traces to the story, an answer, or an instruction file | Untraced criterion missing its `[ASSUMED]` marker |
+| Atomicity | Every AC is one behaviour, ≤3 preconditions | Compound AC joining two behaviours with "and" |
+| Completeness | Every required section substantive | Section present but thin or generic |
+| Edge coverage | Failure, empty, and boundary cases named | Only the happy path described |
+
+**This score does not gate anything, and must not.** You are marking your own
+work: a model scoring the context it just wrote will cluster near the top, so a
+threshold would be a gate that never fires — which is worse than no gate,
+because the log then looks like assurance. The hard stops stay where they are:
+`[NEEDS CLARIFICATION]`, the `[ASSUMED]` one-third cap, and feasibility below.
+
+Deduct honestly. A context scoring 100/100 on a thin story is a worse artifact
+than one scoring 70 with the weak dimensions named, because the second tells a
+developer where to look.
+
+#### Feasibility — GO or NO_GO
+
+Now assess whether **this repository** can build the story as specified. This is
+a different question from clarity: a perfectly unambiguous story can still be
+impossible here.
+
+**Do this only after the ACs are final, and never edit an AC because of what you
+find.** Assessing feasibility while still drafting corrupts the specification —
+criteria drift toward whatever is easy to build, the context still looks clean,
+and nobody can see that the story quietly shrank. If the story is not feasible,
+the answer is NO_GO, never a narrowed AC.
+
+Check, against the code you inventoried:
+
+- Does every entity, service, client, and method the ACs need already exist, or
+  is it created by this story?
+- Does anything contradict a contract this service already publishes?
+- Does the concern belong to this service at all?
+- Does anything require a pattern the stack forbids (a blocking call in a
+  reactive service, a direct DB read where a client is mandated)?
+
+Write the verdict in the canonical form. `GO` needs one line of basis; `NO_GO`
+needs at least one classified blocker:
+
+```
+## Feasibility
+**VERDICT: NO_GO**
+[BLOCKER]: (MISSING_DEPENDENCY) AC-3 requires CatalogClient.fetchBookByAuthor,
+which does not exist and is not created by this story.
+```
+
+Only four classes may block. Prefix every `[BLOCKER]` with one:
+
+| Class | Means |
+|---|---|
+| `MISSING_DEPENDENCY` | Needs an entity, service, or method this repo does not have and this story does not add |
+| `CONTRACT_CONFLICT` | Contradicts an API contract this service already publishes |
+| `SCOPE_MISMATCH` | The concern belongs to a different service |
+| `STACK_INCOMPATIBLE` | Requires a pattern the stack or framework forbids |
+
+**If you cannot name one of those four classes, the verdict is GO.** A NO_GO
+citing an unclassified concern is downgraded to GO by the harness and merely
+reported — deliberately. A halt has to rest on a checkable claim someone can
+argue with, not on a misgiving. Write the concern as a note under the verdict
+instead; it will be surfaced without stopping the run.
+
+**"Hard" is not "infeasible."** A story that is large, unfamiliar, or touches
+many files is a GO. NO_GO means it cannot be built here as written — the remedy
+is re-scoping, sequencing behind another ticket, or moving the work to the
+service that owns it, none of which the coding phase can do.
+
+---
 
 ### 8. Write the context file
 
@@ -634,6 +728,11 @@ After writing the file, tell the developer:
 >
 > Review the [ASSUMED] criteria in Section 9 — I added those; the story
 > didn't ask for them. Confirm or delete each one before building.
+>
+> Story Quality Score: NN/100. Feasibility: GO / NO_GO.
+> A NO_GO means this repo cannot build the story as written — re-scope it,
+> sequence it behind the work that adds the missing piece, or move it to the
+> service that owns the concern.
 >
 > When you run build-prompt-steps, attach this context file to the chat.
 

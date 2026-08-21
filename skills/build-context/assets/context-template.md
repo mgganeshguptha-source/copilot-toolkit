@@ -144,6 +144,76 @@ a specification — refine it before building.
 
 ---
 
+### Section 10 — Story Quality Score
+**Required:** Always
+
+Six dimensions, 0–20 each. **Reported, never gating** — the model is marking its
+own work, so a threshold would be a gate that never fires. The value is the trend
+across stories over time, not any single number.
+
+```markdown
+## Story Quality Score
+| Dimension | Score | Basis |
+|---|---|---|
+| Clarity | 20/20 | No vague quantifiers; all terms concrete |
+| Testability | 16/20 | AC-4 has no directly observable outcome |
+| Traceability | 20/20 | One [ASSUMED] criterion, basis stated |
+| Atomicity | 20/20 | Every AC one behaviour, max 2 preconditions |
+| Completeness | 15/20 | Edge cases thin — only null and empty covered |
+| Edge coverage | 15/20 | No boundary or failure case for the downstream call |
+| **Total** | **106/120** | |
+```
+
+Name the deduction wherever marks are lost. A 120/120 on a thin story is a worse
+artifact than 90/120 with the weak dimensions identified, because the second
+tells a developer where to look.
+
+---
+
+### Section 11 — Feasibility
+**Required:** Always — assessed only AFTER the acceptance criteria are final
+
+Can **this repository** build the story as specified? Different question from
+clarity: a perfectly unambiguous story can still be impossible here.
+
+Never edit an AC because of a feasibility finding. Criteria that drift toward
+what is easy to build produce a context that looks clean while the story has
+quietly shrunk.
+
+```markdown
+## Feasibility
+**VERDICT: GO**
+Basis: CatalogClient, BookResponse and the BooksApi interface method all exist;
+the endpoint follows the pattern already used by getBookById.
+```
+
+```markdown
+## Feasibility
+**VERDICT: NO_GO**
+[BLOCKER]: (MISSING_DEPENDENCY) AC-3 requires CatalogClient.fetchBookByAuthor,
+which does not exist in this repo and is not created by this story.
+```
+
+Only four classes may block. Every `[BLOCKER]` must be prefixed with one:
+
+| Class | Means |
+|---|---|
+| `MISSING_DEPENDENCY` | Needs an entity, service, or method this repo lacks and this story does not add |
+| `CONTRACT_CONFLICT` | Contradicts a contract this service already publishes |
+| `SCOPE_MISMATCH` | The concern belongs to a different service |
+| `STACK_INCOMPATIBLE` | Requires a pattern the stack or framework forbids |
+
+If no class fits, the verdict is **GO** — write the concern as a plain note
+under the verdict. The harness downgrades an unclassified NO_GO to GO and merely
+reports it, because a halt must rest on a claim someone can argue with.
+
+**"Hard" is not "infeasible."** Large, unfamiliar, or touching many files is a
+GO. NO_GO means it cannot be built here as written, and the remedy — re-scope,
+sequence behind another ticket, move to the owning service — is not something
+the coding phase can do.
+
+---
+
 ## Complete Examples
 
 ### Backend Bug Fix
@@ -202,6 +272,22 @@ Returns only owners whose lastName contains "Smith"
 - AC-6 — result sort order. Assumed lastName ascending.
   Basis: pagination without a deterministic sort produces unstable pages;
   the story specifies no order. Confirm or replace before building.
+
+## Story Quality Score
+| Dimension | Score | Basis |
+|---|---|---|
+| Clarity | 20/20 | No vague quantifiers |
+| Testability | 20/20 | Every AC has an observable HTTP outcome |
+| Traceability | 20/20 | One [ASSUMED], basis stated |
+| Atomicity | 20/20 | Each AC one behaviour |
+| Completeness | 15/20 | Edge cases do not cover the repository layer |
+| Edge coverage | 20/20 | null, empty, special chars, over-length all named |
+| **Total** | **115/120** | |
+
+## Feasibility
+**VERDICT: GO**
+Basis: OwnerRepository and the paginated findAll already exist; the change is a
+query modification within the service this story targets.
 ```
 
 ---
