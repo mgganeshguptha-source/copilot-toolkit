@@ -613,6 +613,9 @@ must pass — if any fail, go back to section 4 and ask one more question.
       instruction files) — only terms this story introduces
 - [ ] Story Quality Score present, all six dimensions scored, deductions named
       where marks were lost
+- [ ] Design trigger present in canonical form (`**DESIGN REQUIRED: YES**` or
+      `**DESIGN REQUIRED: NO**`) with a one-line reason, naming the existing
+      precedent when the answer is NO
 - [ ] Feasibility verdict present in canonical form (`**VERDICT: GO**` or
       `**VERDICT: NO_GO**`), assessed only AFTER the ACs were final
 - [ ] No AC was changed, narrowed, or dropped because of a feasibility finding
@@ -648,6 +651,48 @@ because the log then looks like assurance. The hard stops stay where they are:
 Deduct honestly. A context scoring 100/100 on a thin story is a worse artifact
 than one scoring 70 with the weak dimensions named, because the second tells a
 developer where to look.
+
+#### Design trigger — does this story need a technical design?
+
+One line, decided here because this is the only phase that has read both the
+story and the codebase. It gates nothing; the harness reads it to decide whether
+to run the design phase at all.
+
+Answer **YES** when any of these hold:
+
+| Trigger | Example |
+|---|---|
+| Crosses a service boundary | Needs data another service owns; a new downstream call |
+| Changes a published contract | New or altered endpoint, response shape, event schema |
+| Introduces a pattern the repo lacks | First use of caching, messaging, streaming, a scheduler |
+| Has more than one defensible structural answer | Where validation lives; extend an entity or add one |
+| Touches data ownership or transaction boundaries | New table, changed persistence scope |
+| Carries a backward-compatibility concern | Existing consumers must keep working |
+
+Answer **NO** when none do — when the approach is already settled by a pattern
+the codebase establishes. That is the common case, and answering NO to it is
+correct rather than lazy: a design document produced for every story trains
+everyone to stop reading them, so the ones that matter get skimmed too.
+
+Give the reason either way, in one line, naming the precedent when the answer is
+NO so a reviewer can disagree with it:
+
+```
+**DESIGN REQUIRED: NO**
+Follows the same controller to service to CatalogClient shape as getBookById.
+```
+
+```
+**DESIGN REQUIRED: YES**
+Publishes a new event contract other services will consume, and the service has
+no messaging pattern today.
+```
+
+**When genuinely torn, answer YES.** A short design for a story that did not
+need one costs a few thousand tokens. A missing design for one that did means
+the decision still gets made — silently, inside the coding phase, by a model
+optimising for the immediate task, where nobody sees it and nobody weighed the
+alternatives.
 
 #### Feasibility — GO or NO_GO
 

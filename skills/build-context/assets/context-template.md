@@ -170,7 +170,39 @@ tells a developer where to look.
 
 ---
 
-### Section 11 — Feasibility
+### Section 11 — Design trigger
+**Required:** Always — one line plus a reason
+
+Does this story need a technical design before planning? Decided here because
+this is the only phase that has read both the story and the codebase. Gates
+nothing; the harness reads it to decide whether the design phase runs.
+
+**YES** when the story crosses a service boundary, changes a published contract,
+introduces a pattern the repo lacks, touches data ownership, carries a
+backward-compatibility concern, or has more than one defensible structural
+answer. **NO** when the approach is settled by existing convention — the common
+case.
+
+```markdown
+## Design trigger
+**DESIGN REQUIRED: NO**
+Follows the same controller to service to CatalogClient shape as getBookById.
+```
+
+```markdown
+## Design trigger
+**DESIGN REQUIRED: YES**
+Publishes a new event contract other services will consume; the service has no
+messaging pattern today.
+```
+
+Name the precedent when the answer is NO, so a reviewer can disagree in one
+line. When genuinely torn, answer YES — the decision gets made either way, and
+the only question is whether anyone sees it.
+
+---
+
+### Section 12 — Feasibility
 **Required:** Always — assessed only AFTER the acceptance criteria are final
 
 Can **this repository** build the story as specified? Different question from
@@ -283,6 +315,11 @@ Returns only owners whose lastName contains "Smith"
 | Completeness | 15/20 | Edge cases do not cover the repository layer |
 | Edge coverage | 20/20 | null, empty, special chars, over-length all named |
 | **Total** | **115/120** | |
+
+## Design trigger
+**DESIGN REQUIRED: NO**
+A query change inside the service that already owns the data, following the
+existing paginated findAll pattern. No contract change, no new dependency.
 
 ## Feasibility
 **VERDICT: GO**
