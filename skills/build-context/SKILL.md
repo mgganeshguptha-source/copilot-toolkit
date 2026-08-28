@@ -139,6 +139,29 @@ being readable and the requirement is really several requirements — split it. 
 a criterion genuinely needs a matrix of conditions, put a short table under the
 AC rather than nesting clauses.
 
+**ONE RESPONSE PER CRITERION.** This is the rule most often broken, and it is
+broken by punctuation rather than by length. A criterion containing a semicolon,
+a second `IF`, or a second `THEN` is two criteria wearing one identifier:
+
+```
+BAD   AC-5: IF the catalog returns empty, THEN return 404;
+             IF the author is blank or over 256 characters, THEN return 400.
+
+GOOD  AC-5: IF the catalog returns no match, THEN THE endpoint SHALL return 404.
+      AC-6: IF the author is blank, THEN THE endpoint SHALL return 400.
+      AC-7: IF the author exceeds 256 characters, THEN THE endpoint SHALL return 400.
+```
+
+Splitting costs nothing; bundling breaks the thing the identifiers exist for.
+A downstream Validate step returns ONE verdict per identifier, so a bundled
+criterion where the 404 works and the blank check does not can only come back as
+a false MET or an unexplained NOT_MET — and neither says which half failed. The
+same applies to the coverage matrix in the plan: a bundled criterion maps to a
+step that only half-delivers it, and nothing surfaces the gap.
+
+Two responses joined by "and" are also two criteria, even when both are true at
+once. If you find yourself writing "and returns" or "and logs", stop and split.
+
 **EARS is phrasing, not proof.** It makes a criterion unambiguous and
 individually testable. It does not verify that the code satisfies it — that is
 the Validate step's job. An EARS-shaped AC is evidence of clear intent and
@@ -191,6 +214,18 @@ missing dimension of a requested behaviour as `[ASSUMED]` bypasses the gate and
 ships a guess as a requirement. When genuinely torn, use
 `[NEEDS CLARIFICATION]` — a halted run costs one re-run; an invented requirement
 implemented as fact costs a rewrite.
+
+**Test the marker against its own basis before writing it.** If the basis you
+are about to write names the story — "story decision #2", "stated in the story",
+"per the acceptance criteria above" — then the story DID mention the topic and
+the criterion is NOT assumed. Remove the marker. A basis that traces to the story
+and a marker that says the story never mentioned it cannot both be true, and the
+contradiction is visible in a single line.
+
+Marking a traceable criterion `[ASSUMED]` is not a harmless excess of caution. It
+tells the developer to consider deleting a requirement the business actually
+asked for, and it pollutes the assumed-ratio check — enough false positives and a
+well-specified story trips the one-third cap for no reason.
 
 Format, with the basis stated so a reviewer can judge it quickly:
 
@@ -602,6 +637,10 @@ must pass — if any fail, go back to section 4 and ask one more question.
 - [ ] Out of Scope has at least 3 explicit exclusions
 - [ ] Every AC uses an EARS pattern, is one sentence, and has at most three
       preconditions
+- [ ] No AC contains a semicolon, a second IF/THEN, or an "and" joining two
+      responses — each of those is two criteria and must be split
+- [ ] No `[ASSUMED]` criterion has a basis that traces to the story; if the
+      basis names a story clause or decision, the marker is wrong and comes off
 - [ ] Every AC has a stable identifier (`AC-1`, `AC-2.1`) and no existing
       identifier has been renumbered
 - [ ] Every AC not traceable to the story, the developer's answers, or an
@@ -638,7 +677,7 @@ single number.
 | Clarity | No banned phrases; every term concrete | Vague quantifier, unresolved pronoun |
 | Testability | Every AC has an observable outcome | An AC nobody could verify by running the system |
 | Traceability | Every AC traces to the story, an answer, or an instruction file | Untraced criterion missing its `[ASSUMED]` marker |
-| Atomicity | Every AC is one behaviour, ≤3 preconditions | Compound AC joining two behaviours with "and" |
+| Atomicity | Every AC is one behaviour and ONE response, ≤3 preconditions | Any AC with a semicolon, a second IF/THEN, or two responses joined by "and" — deduct even if the AC reads clearly |
 | Completeness | Every required section substantive | Section present but thin or generic |
 | Edge coverage | Failure, empty, and boundary cases named | Only the happy path described |
 
