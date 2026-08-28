@@ -733,6 +733,27 @@ the decision still gets made — silently, inside the coding phase, by a model
 optimising for the immediate task, where nobody sees it and nobody weighed the
 alternatives.
 
+**Decide by the triggers, not by impression.** The same story judged twice must
+get the same answer, and it will not if the decision rests on how substantial the
+story happened to feel on a given reading. Walk the trigger table row by row and
+answer YES if any row fires — the triggers are the decision procedure, not a
+prompt for one.
+
+Two rows are misread often enough to be worth naming:
+
+- **"Crosses a service boundary"** means the STORY introduces a dependency on
+  something outside this service. Adding a method to a client that already
+  exists, already has a base URL, and already calls that service does NOT cross a
+  boundary — the boundary was crossed before this story began. Answer NO on that
+  row.
+- **"Introduces a pattern the repo does not have"** means a pattern genuinely
+  absent. A fourth endpoint shaped like three existing ones introduces nothing,
+  however new the endpoint is.
+
+State which trigger fired, by name, in the reason line. "Adds a new client method
+and a reactive path" names no trigger and is the shape of an answer arrived at by
+impression. If no trigger can be named, the answer is NO.
+
 #### Feasibility — GO or NO_GO
 
 Now assess whether **this repository** can build the story as specified. This is
