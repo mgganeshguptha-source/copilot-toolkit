@@ -71,7 +71,7 @@ append new ones, mark removed ones `AC-4: [WITHDRAWN]`.
 
 | Marker | When |
 |---|---|
-| *(none)* | Traceable to the story, the developer's answers, or an instruction file |
+| *(none)* | Traceable to the story, the developer's answers, or an instruction file — including a decision the story settles by elimination |
 | `[ASSUMED]` | The model added it; the story never mentioned the topic |
 | `[NEEDS CLARIFICATION]` | A requested behaviour is under-specified — goes in Section 8, blocks the harness |
 
@@ -79,7 +79,9 @@ A missing *dimension* of a requested behaviour is `[NEEDS CLARIFICATION]`, never
 `[ASSUMED]`. Every `[ASSUMED]` criterion also appears in Section 9.
 
 Include negative criteria (`SHALL NOT`) wherever a wrong implementation is
-plausible — an unstated exclusion gets implemented anyway.
+plausible — an unstated exclusion gets implemented anyway. A question the story
+answers by elimination (only one option respects its stated scope) is written
+here as a normal or `SHALL NOT` criterion, not raised in Section 8.
 
 ---
 
@@ -89,6 +91,10 @@ plausible — an unstated exclusion gets implemented anyway.
 **Backend:** `null param, empty string, special chars (O'Brien), very long input, injection attempts`
 **Frontend:** `Keyboard submit, screen reader announcement, slow network double-click, mobile keyboard overlap`
 **Full Stack:** `Network failure, API 500 error, search during previous search in progress, session expiry`
+
+For any field or value the story maps, relays, or fixes, name the standard
+adjacent cases explicitly: null or absent value, empty value, fixed enum versus
+free-form value, and an unrecognised value.
 
 ---
 
@@ -105,7 +111,7 @@ context — never in Acceptance Criteria.
 ---
 
 ### Section 7 — Out of Scope
-**Required:** Always — prevents Copilot over-engineering
+**Required:** Always — prevents Copilot over-engineering. At least 3 explicit exclusions.
 
 **Backend:** `firstName search | sorting | performance optimisation | email notification`
 **Frontend:** `Full redesign | time zones | cancellation flow`
@@ -116,12 +122,32 @@ context — never in Acceptance Criteria.
 ### Section 8 — Clarifications Needed
 **Required:** Only if genuine ambiguities exist
 
-A requested behaviour whose dimension is undecided. **Blocks the harness** until
-resolved. Name the missing dimension — never parrot the vague phrase.
+A requested behaviour whose observable outcome is undecided. **Blocks the
+harness** until resolved. Name the missing dimension — never parrot the vague
+phrase.
 
-**Backend:** `[NEEDS CLARIFICATION]: Match type — partial or exact? | Maximum page size?`
+**Backend:** `[NEEDS CLARIFICATION]: Maximum accepted lastName length before 400? | Maximum page size?`
 **Frontend:** `[NEEDS CLARIFICATION]: Validation trigger — on blur or on submit? | Error-state design available?`
-**Full Stack:** `[NEEDS CLARIFICATION]: Search trigger — keypress or button? | Minimum characters before search fires?`
+**Full Stack:** `[NEEDS CLARIFICATION]: Mobile trigger — live search or button-click? | Error state when a live search fails?`
+
+**Before writing any line here, decide: raise, resolve, or delegate.**
+
+| Verdict | When | Where it goes |
+|---|---|---|
+| **Raise** | The story leaves two or more observable behaviours open, and a test would tell them apart | This section, as `[NEEDS CLARIFICATION]` |
+| **Resolve** | The story's ACs, Clarification text, or out-of-scope statements leave only one compliant option | Section 4 as a normal or `SHALL NOT` AC; Section 7 when useful |
+| **Delegate** | The question is about HOW — an annotation, setting, class, method, library, or coding approach — or every option behaves identically | Nothing in context.md; later phases choose. Mark the design trigger YES if the mechanism choice is genuinely structural |
+
+Every clarification costs a full re-run. Raise all of them in one pass,
+including the follow-on questions and adjacent cases a developer's answer would
+expose — never one layer at a time.
+
+| Candidate | Verdict |
+|---|---|
+| "Null upstream value — relay null or substitute a default?" (story silent) | Raise |
+| "Add an explicit field mapping, or turn off ignore-by-default?" (story says other fields stay unmapped) | Resolve — `SHALL NOT` populate the other fields |
+| "Validate in a filter or in the controller?" (both return the same 400) | Delegate |
+| "Match type — partial or exact?" (Expected Behaviour already says partial) | Resolve — already answered |
 
 ---
 
@@ -182,6 +208,10 @@ introduces a pattern the repo lacks, touches data ownership, carries a
 backward-compatibility concern, or has more than one defensible structural
 answer. **NO** when the approach is settled by existing convention — the common
 case.
+
+A choice between implementation mechanisms belongs here as a YES trigger, never
+as a `[NEEDS CLARIFICATION]` — unless the story's own constraints already settle
+it, in which case there is only one defensible answer and no trigger fires.
 
 ```markdown
 ## Design trigger
@@ -281,7 +311,8 @@ Returns only owners whose lastName contains "Smith"
 
 ## Edge Cases
 - null parameter: return all owners
-- Special characters (O'Brien, García): handled correctly
+- Special characters (O'Brien, García): matched literally as part of the
+  contains rule, no escaping or stripping
 - Very long input: return 400 validation error
 
 ## Constraints
@@ -294,9 +325,9 @@ Returns only owners whose lastName contains "Smith"
 ## Out of Scope
 - firstName search not in this story
 - Sorting configurable by the caller not in scope
+- Changes to the owner response shape not in scope
 
 ## Clarifications Needed
-- [NEEDS CLARIFICATION]: Match type — partial (contains) or exact only?
 - [NEEDS CLARIFICATION]: Maximum accepted lastName length before 400 —
   the story requires a 400 on very long input but sets no limit.
 
@@ -326,6 +357,9 @@ existing paginated findAll pattern. No contract change, no new dependency.
 Basis: OwnerRepository and the paginated findAll already exist; the change is a
 query modification within the service this story targets.
 ```
+
+*(Match type is not raised in Clarifications — Expected Behaviour already states
+case-insensitive partial match, so the story answers it.)*
 
 ---
 
@@ -443,7 +477,6 @@ Search button remains for accessibility.
 - URL update on search not in scope
 
 ## Clarifications Needed
-- [NEEDS CLARIFICATION]: Minimum characters — 2 or 3 before search fires?
 - [NEEDS CLARIFICATION]: Mobile trigger — same live search, or button-click?
 
 ## Assumptions
@@ -451,3 +484,6 @@ Search button remains for accessibility.
   shown. Basis: consistent with clearing the input (AC-6); the story is silent
   on the sub-threshold state. Confirm or replace before building.
 ```
+
+*(The minimum character count is not raised in Clarifications — the story fixes
+it at 3, so it is answered.)*

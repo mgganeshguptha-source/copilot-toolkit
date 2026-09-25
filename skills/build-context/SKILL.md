@@ -7,7 +7,7 @@ description: >
   Copilot, or shares a design alongside a story. Works across Angular
   frontend, Spring Boot backend, and full stack work, and across new
   development, enhancements, and bug fixes. The skill enforces a hard quality
-  bar — it efuses to output context with vague language like "should work
+  bar — it refuses to output context with vague language like "should work
   better", "displayed properly", or "performance should be acceptable", and
   it asks targeted questions until acceptance criteria are testable. The
   final context is written to a timestamped file under
@@ -26,6 +26,9 @@ description: >
   NOT ask questions. Instead it records every gap as a `[NEEDS CLARIFICATION]`
   line in Section 8 of context.md and writes the file immediately. A downstream
   harness gate blocks progression while any `[NEEDS CLARIFICATION]` remains.
+  Only genuine, non-derivable behavioural gaps may become clarifications;
+  implementation-mechanics choices and questions already answered by the story
+  are resolved, never raised.
 ---
 
 # Build Context Skill
@@ -107,6 +110,55 @@ metadata, not implementation gaps. For any such section the story leaves empty,
 write `N/A (not required for implementation)` in the body — do NOT emit a
 `[NEEDS CLARIFICATION]`. Only technical/behavioural ambiguities (see CI-mode rule
 6) may remain as clarifications after this scan.
+
+**Non-blocking-question scan (derivable and implementation-mechanics).** After
+the banned-topic scan, test every remaining `[NEEDS CLARIFICATION]` line
+against the three tests below, in order. A line that fails any test is NOT a
+clarification — remove it and resolve it as the test directs.
+
+1. **Mechanics test — is it asking HOW rather than WHAT?** A question whose
+   options differ only in implementation mechanism is not a clarification. It
+   belongs to the analysis / prompt_steps / design phases, which read the code
+   and choose the mechanism. Signals: the question names an annotation, a
+   framework setting, a class, a method, a mapper style, a library, a
+   configuration flag, a refactor approach, or "which of these two ways to
+   code it". Context.md never contains implementation approach (see "What
+   never goes in context.md"), so it can never need an answer to one.
+   → Remove the line. Write only the observable behaviour the story requires
+   as an AC; leave the mechanism to later phases.
+
+2. **Derivability test — does exactly one option satisfy what the story
+   already says?** Walk each candidate answer against the story, its
+   acceptance criteria, any Clarification text, and existing ACs. If every
+   option but one contradicts a stated constraint (for example, one option
+   would change fields the story declares out of scope), the story has
+   already answered the question.
+   → Remove the line. Encode the surviving answer as a normal AC or `SHALL NOT`
+   criterion traced to the story clause that decides it (no `[ASSUMED]`
+   marker — the basis names the story). Add the excluded alternative to Out of
+   Scope when useful.
+
+3. **Outcome-equivalence test — would every option produce the same
+   observable behaviour against every AC?** If yes, the choice does not block
+   implementation.
+   → Remove the line. The later phases pick.
+
+Only a question that passes all three — it is about observable behaviour, the
+story genuinely leaves two or more compliant behaviours open, and those
+behaviours differ in what a test would observe — stays as
+`[NEEDS CLARIFICATION]`.
+
+| Invalid clarification | Test failed | Resolution |
+|---|---|---|
+| `Should the field be added as an explicit mapping line, or should the ignore-by-default setting be removed so all matching fields map?` — story says only this field changes; other fields stay unmapped | Mechanics + Derivability | Remove. Add AC: THE endpoint SHALL NOT populate the other unmapped fields. Mechanism left to later phases |
+| `Constructor injection or field injection for the new dependency?` | Mechanics (and settled by constraints) | Remove |
+| `Validate the header in a filter or in the controller?` — both produce the same 400 | Mechanics + Outcome-equivalence | Remove; keep the 400 AC |
+| `Return 404 or 200-empty when no match exists?` — story silent, tests differ | — passes all three | Keep as `[NEEDS CLARIFICATION]` |
+
+**Why this matters.** Every clarification halts the harness and costs a full
+re-run. A question that the story already answers, or that only a later phase
+can answer, halts the run for nothing and teaches developers to distrust the
+gate.
 
 ---
 
@@ -208,12 +260,17 @@ Every AC is one of three kinds:
 - The story never mentions the topic at all and the model believes it is needed
   → `[ASSUMED]`. *The story asks for a filter dropdown; the model adds
   accessibility criteria nobody requested.*
+- The story leaves a question open on its face, but its own constraints admit
+  only one answer → neither marker. Write a normal AC traced to the deciding
+  clause (see "Non-blocking-question scan", test 2).
 
 `[ASSUMED]` is **not** an escape hatch from the clarification gate. Marking a
 missing dimension of a requested behaviour as `[ASSUMED]` bypasses the gate and
-ships a guess as a requirement. When genuinely torn, use
-`[NEEDS CLARIFICATION]` — a halted run costs one re-run; an invented requirement
-implemented as fact costs a rewrite.
+ships a guess as a requirement. When genuinely torn **between observable
+behaviours the story leaves open**, use `[NEEDS CLARIFICATION]` — a halted run
+costs one re-run; an invented requirement implemented as fact costs a rewrite.
+"Genuinely torn" never covers a choice of implementation mechanism or a choice
+the story's own text already settles.
 
 **Test the marker against its own basis before writing it.** If the basis you
 are about to write names the story — "story decision #2", "stated in the story",
@@ -298,20 +355,40 @@ because the template had room for it is invention with extra structure.
    harness for nothing. If a template section asks for such metadata and the story
    doesn't supply it, leave it blank or write `N/A (not required for
    implementation)` — never a `[NEEDS CLARIFICATION]`.
-7. **Any criterion you add that the story never mentioned is marked
+   It is also **NEVER** for a question that fails the "Non-blocking-question
+   scan" — an implementation-mechanics choice, a question the story's own text
+   already answers, or a choice between options that behave identically. Resolve
+   those as that scan directs.
+7. **Read the story's Clarification text as binding.** Any Clarification,
+   Notes, or developer-answer paragraph in the story carries the same weight as
+   its acceptance criteria. Before writing Section 8, re-read it and test every
+   candidate clarification against it; a candidate it answers directly or by
+   elimination is removed and encoded as a normal traced AC.
+8. **Surface every blocking question in ONE pass.** Do not stop at the first
+   layer of ambiguity. For each candidate clarification that survives the scans,
+   ask: *once this is answered, what would I need to know next to write a
+   testable AC?* Emit those follow-on questions in the same run. Always check the
+   standard adjacent cases for any field or value the story touches: null or
+   absent value, empty value, fixed enum versus free-form value, unrecognised
+   value, and the explicit boundary of what is out of scope. A developer who
+   answers Section 8 should not receive a new, deeper question on the next run
+   that could have been asked on this one.
+9. **Any criterion you add that the story never mentioned is marked
    `[ASSUMED]`** (see "Acceptance criteria — syntax, numbering, and
    provenance"). CI mode is where invention is most dangerous: there is no human
    in the loop to notice that an AC nobody asked for has appeared in SHALL form.
    Do not use `[ASSUMED]` to sidestep a genuine `[NEEDS CLARIFICATION]` — a
    missing dimension of a *requested* behaviour always blocks.
-8. Write the file immediately to `.github/story-context-files/` and stop. Do not
-   ask for approval.
+10. Write the file immediately to `.github/story-context-files/` and stop. Do not
+    ask for approval.
 
 **Why:** a downstream harness gate scans the written context for
 `[NEEDS CLARIFICATION]`. If any remain, the harness halts the run and surfaces them
 to a human, who resolves them (by editing the story) and re-runs. So in CI the
 clarification loop happens *between* runs, not *during* one — but ambiguity is never
 silently guessed. The marker is the contract between this skill and the harness.
+Because every round trip costs a full re-run, the gate must fire only on genuine,
+non-derivable behavioural gaps, and must fire on all of them at once.
 
 ---
 
@@ -392,6 +469,10 @@ State your inference back briefly so the developer can correct it:
 For each section of the template, ask one question if the story doesn't
 already nail it. **In strict mode, treat vague coverage as a gap.**
 
+Before asking any question, apply the "Non-blocking-question scan" to it. Never
+ask the developer to choose an implementation mechanism, and never ask a
+question the story's own text already answers.
+
 The questions below are the ones that matter most. Ask them one at a time,
 each with a concrete example answer in the right stack — the example does
 the teaching.
@@ -429,6 +510,14 @@ every dimension is filled in. Examples in italics.
     (~10 concurrent users)?"
   - Complete: *"P95 < 500ms at 1000-owner result set under ~10 concurrent
     users (typical clinic load)"*
+- **Field / value passthrough** (any story that maps, relays, or fixes a field).
+  - Required dimensions: value type (fixed enum vs free-form), null or absent
+    behaviour, empty-value behaviour, unrecognised-value behaviour, and which
+    neighbouring fields are explicitly out of scope.
+  - Thin: "pass status through verbatim" → ask "and when upstream status is
+    null — null on the response, or a default?"
+  - Complete: *"free-form string relayed unchanged, including unrecognised
+    and empty values; null relayed as null; no other field changes"*
 
 #### Frontend questions (any story with a UI)
 
@@ -648,6 +737,17 @@ must pass — if any fail, go back to section 4 and ask one more question.
       missing dimension of a *requested* behaviour has been marked `[ASSUMED]`
       instead of `[NEEDS CLARIFICATION]`
 - [ ] `[ASSUMED]` criteria are under a third of the total AC count
+- [ ] No `[NEEDS CLARIFICATION]` line names an annotation, framework setting,
+      class, method, library, or coding approach — every one asks about
+      observable behaviour
+- [ ] No `[NEEDS CLARIFICATION]` line is answered, directly or by elimination,
+      by the story's ACs, Clarification text, or out-of-scope statements —
+      each such question has been removed and encoded as a traced AC
+- [ ] No `[NEEDS CLARIFICATION]` line offers options that would behave
+      identically against every AC
+- [ ] Every surviving `[NEEDS CLARIFICATION]` line has had its follow-on
+      questions and standard adjacent cases (null, empty, enum vs free-form,
+      unrecognised value, scope boundary) surfaced in this same pass
 - [ ] No standing glossary of pre-existing domain terms (those belong in
       instruction files) — only terms this story introduces
 - [ ] Story Quality Score present, all six dimensions scored, deductions named
@@ -732,6 +832,14 @@ need one costs a few thousand tokens. A missing design for one that did means
 the decision still gets made — silently, inside the coding phase, by a model
 optimising for the immediate task, where nobody sees it and nobody weighed the
 alternatives.
+
+**This is where a structural choice belongs — not in Section 8.** When a story
+has more than one defensible implementation mechanism, that is a design trigger
+("Has more than one defensible structural answer"), never a
+`[NEEDS CLARIFICATION]`. The design phase weighs the mechanisms; the developer
+is not asked to pick one before context is written. A choice that the story's
+own constraints already settle is not "more than one defensible answer" — it
+has one.
 
 **Decide by the triggers, not by impression.** The same story judged twice must
 get the same answer, and it will not if the decision rests on how substantial the
@@ -858,6 +966,12 @@ upfront:
 - Database table or column names
 - Implementation approach ("use a new service", "add a guard", "extract a method")
 
+**The same exclusion applies to questions.** Because context.md never states an
+implementation approach, it never needs one decided. A `[NEEDS CLARIFICATION]`
+that asks the developer to choose between implementation approaches is the
+over-specified spec in question form — remove it (see "Non-blocking-question
+scan").
+
 **A project glossary also does not belong here.** Domain terms that outlive the
 story — the ubiquitous nouns of the codebase — belong in a governed instruction
 file (`applyTo: **`), defined once and auto-injected into every story. Restating
@@ -906,6 +1020,15 @@ When a screenshot or Figma export is attached:
 | "Search returns relevant results" | "Returns owners whose lastName contains the term, case-insensitively, paginated to 20 per page, sorted by lastName ascending" |
 | "Form behaves correctly" | "On submit: validates all fields, calls POST /appointments, shows spinner during call, navigates to confirmation on 201, shows inline error toast on 4xx/5xx" |
 | "Search is faster" | "Results update within 300ms of last keystroke; spinner shown if API call exceeds 200ms" |
+
+### Calibrating clarifications — raise, resolve, or delegate
+
+| Candidate question | Verdict | Where it goes |
+|---|---|---|
+| "Null upstream value — relay null or substitute a default?" (story silent) | Raise | Section 8 `[NEEDS CLARIFICATION]` |
+| "Add an explicit mapping for the field, or turn off ignore-by-default?" (story says other fields stay unmapped) | Resolve | AC: THE endpoint SHALL NOT populate the other unmapped fields |
+| "Put the check in a filter or in the controller?" (both return the same 400) | Delegate | Nothing in context.md; later phases choose |
+| "Map the other unmapped fields too?" (story Clarification says only this field changes) | Resolve | Out of Scope + `SHALL NOT` AC |
 
 ---
 
