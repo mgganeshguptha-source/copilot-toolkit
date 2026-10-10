@@ -164,12 +164,11 @@ When Section 8 has any line, end it with this note, unchanged:
 ```markdown
 **How to answer:** answer each question in the story file on the base branch,
 preferably as a new acceptance criterion, quoting its ID (e.g. `CL-1: (c) —
-map to UNKNOWN`). Optionally tag the answer:
-`[service]` (default) — a rule for this service, recorded for later stories;
-`[story-only]` — applies to this story alone;
-`[toolkit-skill]` — this question should never have been asked (proposes a skill fix);
-`[toolkit-instruction]` — a rule for every service (proposes an instruction).
-Then re-run the harness with resume=true.
+map to UNKNOWN`). Then re-run the harness with resume=true. No tagging is
+needed — the harness decides whether an answer is a rule for this service
+(recorded for later stories) or a one-off. To override, add `[story-only]`,
+`[service]`, `[toolkit-skill]` (this should never have been asked) or
+`[toolkit-instruction]` (a rule for every service).
 ```
 
 ---
