@@ -130,7 +130,8 @@ clarification — remove it and resolve it as the test directs.
 2. **Derivability test — does exactly one option satisfy what the story
    already says?** Walk each candidate answer against the story, its
    acceptance criteria, any Clarification text, and existing ACs. If every
-   option but one contradicts a stated constraint (for example, one option
+   option but one contradicts a stated constraint, or an approved decision
+   file in `docs/decisions/` settles it (for example, one option
    would change fields the story declares out of scope), the story has
    already answered the question.
    → Remove the line. Encode the surviving answer as a normal AC or `SHALL NOT`
@@ -338,7 +339,11 @@ because the template had room for it is invention with extra structure.
    guess and do NOT fill with vague language. Instead write one precise
    `[NEEDS CLARIFICATION]` line in **Section 8 — Clarifications Needed**, naming the
    exact missing dimension (same quality bar as the table in "Banned phrases":
-   name the missing dimension, never parrot a vague phrase).
+   name the missing dimension, never parrot a vague phrase). Use the Section 8
+   line format from the template: an ID (`CL-1`, `CL-2`, ...), the question, and
+   the 2–4 observable options — e.g.
+   `[NEEDS CLARIFICATION]: CL-1 — Unrecognised status value: (a) reject with 400 (b) pass through unchanged (c) map to UNKNOWN`.
+   End Section 8 with the template's "How to answer" note.
 4. The banned-phrase rules still apply in full — a `[NEEDS CLARIFICATION]` line must
    describe the missing dimension, not restate a vague phrase.
 5. Sections you CAN complete from the story, complete normally. Only genuinely
@@ -359,11 +364,16 @@ because the template had room for it is invention with extra structure.
    scan" — an implementation-mechanics choice, a question the story's own text
    already answers, or a choice between options that behave identically. Resolve
    those as that scan directs.
-7. **Read the story's Clarification text as binding.** Any Clarification,
-   Notes, or developer-answer paragraph in the story carries the same weight as
-   its acceptance criteria. Before writing Section 8, re-read it and test every
-   candidate clarification against it; a candidate it answers directly or by
-   elimination is removed and encoded as a normal traced AC.
+7. **Read the story's Clarification text — and the service's recorded
+   decisions — as binding.** Any Clarification, Notes, or developer-answer
+   paragraph in the story carries the same weight as its acceptance criteria.
+   So does every decision in `docs/decisions/*.md` (headed
+   `D-<feature>-<n>`): each was answered by a person for an earlier story in
+   this service and approved in a merged pull request. Before writing
+   Section 8, test every candidate clarification against both; a candidate
+   either answers directly or by elimination is removed and encoded as a
+   normal traced AC that cites its source (`per D-OP018-6418-1`). If the story
+   contradicts a recorded decision, raise ONE clarification quoting both.
 8. **Surface every blocking question in ONE pass.** Do not stop at the first
    layer of ambiguity. For each candidate clarification that survives the scans,
    ask: *once this is answered, what would I need to know next to write a
@@ -741,8 +751,11 @@ must pass — if any fail, go back to section 4 and ask one more question.
       class, method, library, or coding approach — every one asks about
       observable behaviour
 - [ ] No `[NEEDS CLARIFICATION]` line is answered, directly or by elimination,
-      by the story's ACs, Clarification text, or out-of-scope statements —
-      each such question has been removed and encoded as a traced AC
+      by the story's ACs, Clarification text, out-of-scope statements, or a
+      recorded decision in `docs/decisions/` — each such question has been
+      removed and encoded as a traced AC
+- [ ] Every `[NEEDS CLARIFICATION]` line has an ID (`CL-n`) and its 2–4
+      observable options, and Section 8 ends with the "How to answer" note
 - [ ] No `[NEEDS CLARIFICATION]` line offers options that would behave
       identically against every AC
 - [ ] Every surviving `[NEEDS CLARIFICATION]` line has had its follow-on
