@@ -126,16 +126,25 @@ A requested behaviour whose observable outcome is undecided. **Blocks the
 harness** until resolved. Name the missing dimension — never parrot the vague
 phrase.
 
-**Backend:** `[NEEDS CLARIFICATION]: Maximum accepted lastName length before 400? | Maximum page size?`
-**Frontend:** `[NEEDS CLARIFICATION]: Validation trigger — on blur or on submit? | Error-state design available?`
-**Full Stack:** `[NEEDS CLARIFICATION]: Mobile trigger — live search or button-click? | Error state when a live search fails?`
+One question per line, in this exact form — keep the `[NEEDS CLARIFICATION]:`
+prefix (the harness gate reads it), then an ID, the missing dimension, and the
+2–4 options a test could tell apart:
+
+`[NEEDS CLARIFICATION]: CL-<n> — <missing dimension>: (a) <option> (b) <option> [(c) ...]`
+
+**Backend:** `[NEEDS CLARIFICATION]: CL-1 — Maximum lastName length: (a) 50, longer returns 400 (b) 255, longer returns 400 (c) no limit`
+**Frontend:** `[NEEDS CLARIFICATION]: CL-1 — Validation trigger: (a) on blur (b) on submit (c) both`
+**Full Stack:** `[NEEDS CLARIFICATION]: CL-1 — Mobile search trigger: (a) live as the user types (b) on button click`
+
+If no option list fits (a missing number, an unknown name), state what is
+missing and its unit or form instead of options.
 
 **Before writing any line here, decide: raise, resolve, or delegate.**
 
 | Verdict | When | Where it goes |
 |---|---|---|
 | **Raise** | The story leaves two or more observable behaviours open, and a test would tell them apart | This section, as `[NEEDS CLARIFICATION]` |
-| **Resolve** | The story's ACs, Clarification text, or out-of-scope statements leave only one compliant option | Section 4 as a normal or `SHALL NOT` AC; Section 7 when useful |
+| **Resolve** | The story's ACs, Clarification text, out-of-scope statements, or a recorded decision in `docs/decisions/` leave only one compliant option | Section 4 as a normal or `SHALL NOT` AC citing its source; Section 7 when useful |
 | **Delegate** | The question is about HOW — an annotation, setting, class, method, library, or coding approach — or every option behaves identically | Nothing in context.md; later phases choose. Mark the design trigger YES if the mechanism choice is genuinely structural |
 
 Every clarification costs a full re-run. Raise all of them in one pass,
@@ -148,6 +157,19 @@ expose — never one layer at a time.
 | "Add an explicit field mapping, or turn off ignore-by-default?" (story says other fields stay unmapped) | Resolve — `SHALL NOT` populate the other fields |
 | "Validate in a filter or in the controller?" (both return the same 400) | Delegate |
 | "Match type — partial or exact?" (Expected Behaviour already says partial) | Resolve — already answered |
+| "Unknown status — reject or map to UNKNOWN?" (`D-OP018-6418-1` already decided it) | Resolve — cite the decision |
+
+When Section 8 has any line, end it with this note, unchanged:
+
+```markdown
+**How to answer:** answer each question in the story file on the base branch,
+preferably as a new acceptance criterion, quoting its ID (e.g. `CL-1: (c) —
+map to UNKNOWN`). Then re-run the harness with resume=true. No tagging is
+needed — the harness decides whether an answer is a rule for this service
+(recorded for later stories) or a one-off. To override, add `[story-only]`,
+`[service]`, `[toolkit-skill]` (this should never have been asked) or
+`[toolkit-instruction]` (a rule for every service).
+```
 
 ---
 
