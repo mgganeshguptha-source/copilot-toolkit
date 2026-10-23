@@ -227,6 +227,8 @@ If the developer reports compilation errors after generation, fix them in a sing
 - ❌ Make tests depend on execution order
 - ❌ Suppress test output or exceptions with empty catch blocks
 - ❌ Skip generating tests for branches with a comment like "// trivial, no test needed" when the branch contains business logic
+- ❌ Write tests for a branch that cannot happen in production (e.g. an `instanceof` check on a type the signature already guarantees, reached only by stubbing an impossible value). If a coverage gap is reachable only that way, report it as dead code in the phase summary instead of covering it
+- ❌ Work around a wildcard or `Object` return type in production code (`doReturn(...)` because `thenReturn` will not compile against `Mono<?>`) without flagging it — that compile error is a sign the production signature is wrong; say so in the phase summary
 
 ---
 

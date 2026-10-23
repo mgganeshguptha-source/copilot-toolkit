@@ -392,6 +392,20 @@ every later step references instead of repeating the path.]
 > re-listing paths. If Step 1 discovers a file the seed missed, add a new
 > ID here — do not renumber existing IDs.
 
+## Signature changes
+
+[Either the single line "None — no existing public or interface method
+changes signature." or one row per change. A change not listed here is
+out of scope for every step.]
+
+| File ID | Method | Before | After | Why the story needs it |
+|---------|--------|--------|-------|------------------------|
+
+> Types with the same simple name: when the change touches a class whose
+> simple name exists in more than one package (e.g. a generated client
+> model and a server model), name the one to use by its fully qualified
+> name here, e.g. `com.bcbsm.mbp.coverage.client.model.VisitSummaryResponse`.
+
 ---
 
 ## Step 1 — [One-line goal]
@@ -591,6 +605,10 @@ Before showing the plan to the developer, verify:
 - [ ] Convention drift step is present near the end
 - [ ] No step has more than one logical change
 - [ ] An Impacted Files block exists, populated with `ID | Path | Role`
+- [ ] A Signature changes block exists — "None" or one row per change with
+      before/after and the reason; no step changes a signature not listed
+- [ ] Every type whose simple name exists in more than one package is
+      named by its fully qualified name
 - [ ] No full file path appears anywhere outside the Impacted Files block
       and Step 1's seed list — every later-step file reference uses an ID
 - [ ] Step 1's prompt asks Copilot to check for required non-code files
@@ -639,6 +657,10 @@ Things the plan should not do, and what to do instead:
 - **Don't include "open the PR" as a step.** That's a developer
   workflow action, not a Copilot prompt step. It belongs in done
   criteria.
+- **Don't leave signature changes implicit.** A step that changes an
+  existing public or interface method must point to a row in the
+  Signature changes block. Never plan a type widening (`Object`, raw
+  types, `Mono<?>`) as the way to make code compile.
 
 ---
 

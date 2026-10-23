@@ -30,6 +30,25 @@ applyTo: "src/main/java/**/*.java"
   services.
 - Never build SQL or JPQL via string concatenation of user input.
 
+## Existing contracts and types
+
+- Do not change the signature of an existing public method or interface
+  method (return type, parameter types, method name) unless the plan names
+  that change. Fit the new code to the existing contract, not the contract to
+  the new code.
+- Never widen a type to get past a compile error: no `Object` parameters, raw
+  types, or wildcards (`Mono<?>`, `List<?>`, `Map<String, ?>`) in place of the
+  concrete type the code actually handles. A type mismatch means the wrong
+  class was picked — fix the choice, not the signature.
+- When two classes share a simple name (e.g. a generated client model and a
+  server model, both `VisitSummaryResponse`), use the one the plan names, with
+  an explicit import or its fully qualified name. Never accept both.
+- Do not add `instanceof` checks or type switches on a value whose type the
+  signature already guarantees. A branch that can never run is dead code —
+  do not write it.
+- Map each field in one place. When a mapper/translator (e.g. MapStruct)
+  already sets a field, do not set it again after the mapping call.
+
 ## Package Structure
 
 ```

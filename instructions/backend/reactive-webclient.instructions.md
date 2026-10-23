@@ -30,7 +30,10 @@ and `Mono`-returning.
 - The OAuth2 bearer token is attached automatically by
   `ServerOAuth2AuthorizedClientExchangeFilterFunction` on every `WebClient` call — do **not**
   manually add an `Authorization` header.
-- All methods return `Mono<ResponseType>` (or `Flux<T>`). Never block — `.block()` and
+- All methods return `Mono<ResponseType>` (or `Flux<T>`) where `ResponseType` is the
+  concrete generated client model (e.g. `com.bcbsm.mbp.<service>.client.model.<Type>`) —
+  never `Mono<?>`, `Mono<Object>` or a raw `Mono`. Do not change the return type of an
+  existing client interface method unless the plan names that change. Never block — `.block()` and
   `.collectList()` are strictly prohibited (they caused production performance problems
   under load). Use `.buffer()` or `.reduce()` where you would have collected a list.
 
@@ -61,6 +64,8 @@ and `Mono`-returning.
 
 - Do not block (`.block()`, `.blockFirst()`, `.blockLast()`, `.toFuture().get()`, blocking I/O) — strict ban.
 - Do not use `.collectList()` — use `.buffer()` or `.reduce()` instead.
+- Do not widen a client method's return type to `Mono<?>` / `Mono<Object>`, and do not
+  change an existing client interface signature the plan does not name.
 - Do not manually attach the bearer token — the exchange filter does it.
 - Do not add retry logic — infrastructure owns retries.
 - Do not create a new `WebClient` inline — inject the qualified bean.
