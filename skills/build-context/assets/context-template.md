@@ -162,7 +162,7 @@ expose — never one layer at a time.
 When Section 8 has any line, end it with this note, unchanged:
 
 ```markdown
-**How to answer:** answer each question in the story file on the base branch,
+**How to answer:** answer each question in the story file on the story branch (the run's base),
 preferably as a new acceptance criterion, quoting its ID (e.g. `CL-1: (c) —
 map to UNKNOWN`). Then re-run the harness with resume=true. No tagging is
 needed — the harness decides whether an answer is a rule for this service
@@ -269,6 +269,16 @@ quietly shrunk.
 **VERDICT: GO**
 Basis: CatalogClient, BookResponse and the BooksApi interface method all exist;
 the endpoint follows the pattern already used by getBookById.
+Data flow: API (this repo) → CatalogClient (this repo) → catalog service (unchanged).
+```
+
+```markdown
+## Feasibility
+**VERDICT: NO_GO**
+[BLOCKER]: (SCOPE_MISMATCH) AC-2 needs the visit-summary store to hold the new
+response shape; that store is owned by dx_mpa_responsive and no contract for the
+change is attached. Sequence this story after the store change.
+Data flow: API (dx_mex-coverage-service) → store (dx_mpa_responsive) → selector read (this repo).
 ```
 
 ```markdown
