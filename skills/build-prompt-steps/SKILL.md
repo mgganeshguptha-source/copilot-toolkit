@@ -406,6 +406,23 @@ out of scope for every step.]
 > model and a server model), name the one to use by its fully qualified
 > name here, e.g. `com.bcbsm.mbp.coverage.client.model.VisitSummaryResponse`.
 
+## Contract usage
+
+[Either the single line "None — this change reads no new or changed contract
+from another repo." or one row per contract field, selector, action or stream
+the code reads or writes across a repo boundary. Fill it when the story's
+"Requires a new or changed contract from" line names a repo (use its attached
+contract-<repo>.md), or when this change alters a contract other repos read.]
+
+| Contract | Element (field / selector / action / stream / endpoint) | Shape used | Read or written by (File ID) |
+|----------|---------------------------------------------------------|------------|------------------------------|
+
+> One shape per element. The plan never handles "the old or the new shape"
+> (`a?.body ?? a`, try-both parsing, optional chaining across shapes) unless the
+> story explicitly asks for backward compatibility — and then that is an AC with
+> its own step. Map an upstream shape in ONE place (the effect, reducer,
+> service or mapper that receives it), never in each consuming component.
+
 ---
 
 ## Step 1 — [One-line goal]
@@ -609,6 +626,10 @@ Before showing the plan to the developer, verify:
       before/after and the reason; no step changes a signature not listed
 - [ ] Every type whose simple name exists in more than one package is
       named by its fully qualified name
+- [ ] A Contract usage block exists — "None" or one row per element read or
+      written across a repo boundary, each with exactly one shape
+- [ ] No step accepts two alternative payload shapes unless an AC asks for
+      backward compatibility; upstream shapes are mapped in one place
 - [ ] No full file path appears anywhere outside the Impacted Files block
       and Step 1's seed list — every later-step file reference uses an ID
 - [ ] Step 1's prompt asks Copilot to check for required non-code files
@@ -657,6 +678,10 @@ Things the plan should not do, and what to do instead:
 - **Don't include "open the PR" as a step.** That's a developer
   workflow action, not a Copilot prompt step. It belongs in done
   criteria.
+- **Don't guess an upstream shape.** When the context file says the shape
+  comes from another repo's contract, every step uses the shape in the Contract
+  usage block. If the context file has no contract for data another repo is
+  changing, stop and say so — do not plan defensive code that accepts both.
 - **Don't leave signature changes implicit.** A step that changes an
   existing public or interface method must point to a row in the
   Signature changes block. Never plan a type widening (`Object`, raw
