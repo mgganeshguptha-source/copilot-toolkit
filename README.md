@@ -69,7 +69,8 @@ copilot-toolkit/
 │       ├── build-copilot-instructions-mobile-frontend/            [workflow — scan Ionic repo → fill copilot-instructions.md]
 │       ├── analyze-microservice/                                  [workflow — recursive dependency trace → analysis document]
 │       ├── sequence-diagram-microservice/                         [workflow — recursive trace → Mermaid sequence diagram]
-│       └── security-review/                                       [workflow — audit service against all guardrails → review report]
+│       ├── review-angular-code/                                   [checklist — review Angular changes (RxJS, NgRx, control flow, null safety…) → findings]
+│       └── (security-review/ — not in this copy; the BCBSM toolkit has it, with assets/security-review-template.md)
 │
 └── README.md
 ```
@@ -153,7 +154,8 @@ Every skill stops at an explicit human checkpoint between actions — one step a
 | build-copilot-instructions-mobile-frontend | Mobile | "generate copilot instructions for this Ionic repo" |
 | analyze-microservice | Backend | "analyze [service]", "document this service" |
 | sequence-diagram-microservice | Backend | "sequence diagram for [service]" |
-| security-review | All | "security review of [service]", "audit for HIPAA/OWASP" |
+| review-angular-code | Web / Mobile | "review my Angular changes", "check this component", "PR review" |
+| security-review | All | "security review of [service]", "audit for HIPAA/OWASP" — not in this copy (see tree note) |
 
 **Note on the loop skills (build-context through run-and-fix-tests):** teams adopting one should adopt all five, since each consumes the previous skill's output. Adopting only some breaks the chain.
 
