@@ -392,6 +392,14 @@ every later step references instead of repeating the path.]
 > re-listing paths. If Step 1 discovers a file the seed missed, add a new
 > ID here — do not renumber existing IDs.
 
+> **API changes (backend):** when the story adds or changes an endpoint, a
+> request or a response, the repo's OpenAPI file (e.g.
+> `<service>-openapi-code/src/main/resources/<service>.yml`) is an Impacted
+> File, and a step updates it to match the code (code-first: the code and the
+> springdoc / swagger annotations change, and the YAML is updated in the same
+> change). JSON request/response test resources the tests need are listed too,
+> with invented values only.
+
 ## Signature changes
 
 [Either the single line "None — no existing public or interface method
@@ -414,7 +422,7 @@ the code reads or writes across a repo boundary. Fill it when the story's
 "Requires a new or changed contract from" line names a repo (use its attached
 contract-<repo>.md), or when this change alters a contract other repos read.]
 
-| Contract | Element (field / selector / action / stream / endpoint) | Shape used | Read or written by (File ID) |
+| Contract (attached file) | Element (field / selector / action / stream / endpoint) | Shape used | Read or written by (File ID) |
 |----------|---------------------------------------------------------|------------|------------------------------|
 
 > One shape per element. The plan never handles "the old or the new shape"
@@ -628,6 +636,8 @@ Before showing the plan to the developer, verify:
       named by its fully qualified name
 - [ ] A Contract usage block exists — "None" or one row per element read or
       written across a repo boundary, each with exactly one shape
+- [ ] When an endpoint, request or response changes, the OpenAPI file is an
+      Impacted File and a step updates it
 - [ ] No step accepts two alternative payload shapes unless an AC asks for
       backward compatibility; upstream shapes are mapped in one place
 - [ ] No full file path appears anywhere outside the Impacted Files block
