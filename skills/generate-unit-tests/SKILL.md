@@ -87,9 +87,11 @@ Everything below serves these two goals.
 | Assert nothing (no expectations, no verification) | Test always passes; gives false confidence | Every test must have at least one assertion or verification call |
 | Skip the team's testing instruction files (java-testing, angular-testing, ionic-angular-testing) | Convention drift | Apply every matching instruction; state which ones applied |
 | Use random data, current time, or external IDs without controlling them | Flaky tests | Inject clocks, fix seeds, use test fixtures |
+| Copy values from existing test resources (JSON payloads, Postman exports, WireMock stubs) into new tests or resources | They may hold real member data taken from an environment | Build request/response JSON from the OpenAPI schema / DTO types with invented values (`sample-<field>`, `1`, `false`, `2026-01-01`); reuse an existing file only by referencing it, unchanged |
 
 **This is a hard preflight check.** Before reporting a test file done,
-verify exactly one file was written, every AC in scope has at least
+verify exactly one test file was written (plus any JSON request/response
+test resources it needs, with invented values only), every AC in scope has at least
 one mapped test, no banned patterns are present, and the file actually
 exists on disk.
 

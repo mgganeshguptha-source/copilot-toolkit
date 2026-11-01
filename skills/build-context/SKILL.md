@@ -468,15 +468,30 @@ harness checks it before this phase runs, so in a harness run it is present.
 - **`None`** — the story does not need a changed contract. Repos may still be
   connected; the current contract is whatever the code reads today.
 - **`<upstream-repo>`** — the story needs a new or changed contract from that
-  repo. Its contract file (`contract-<repo>.md`, and usually
-  `sample-<repo>.json`) is attached. **Read it before anything else and treat
-  it as fixed:** field names, nesting, status values, selectors and failure
-  shapes come from the contract, not from the old code and not from guesses.
-  An AC about the shape of upstream data traces to the contract, e.g.
-  `[source: contract-dx_mpa_responsive.md]`. Do not ask a
-  `[NEEDS CLARIFICATION]` question the contract already answers.
-  Anything the contract marks `UNCONFIRMED:` that an AC depends on IS a
-  `[NEEDS CLARIFICATION]` line.
+  repo. The upstream repo's **own files** are attached as the contract:
+  - backend upstream story → its **OpenAPI file** (`*.yml` / `*.yaml`), plus a
+    `*.mock-samples.json` the harness generated from that schema;
+  - Angular upstream story → its **NgRx store folder** (`store/…/*.ts`: state,
+    actions, selectors, reducers, effects);
+  - optionally a short `contract-<repo>.md` summary of what changed.
+
+  **Read these before anything else and treat them as fixed:** field names,
+  nesting, types, enum values, selectors and failure shapes come from these
+  files, not from the old code and not from guesses. An AC about the shape of
+  upstream data traces to them, e.g. `[source: mex-coverage-service.yml]`. Do
+  not ask a `[NEEDS CLARIFICATION]` question they already answer.
+
+  The mock samples are **invented** (generated from the schema): use them for
+  shape, never as real values. Attached Postman collections or test JSON are
+  secondary — when they disagree with the schema, the schema wins — and their
+  values are never copied (they may hold real member data).
+
+  Raise a `[NEEDS CLARIFICATION]` line when:
+  - an AC depends on values the schema does not define (e.g. the permitted
+    `status` values when the OpenAPI file has no `enum`);
+  - the attached store files import a type or file that is not attached
+    (name the missing file);
+  - the summary marks something `UNCONFIRMED:` that an AC depends on.
 
 ### 3. Identify layer and story type silently
 
@@ -848,7 +863,7 @@ Then apply these rules:
 | A step owned by another repo must CHANGE for this story (new field, new shape, new status values) and no contract for it is attached | `[BLOCKER]: (SCOPE_MISMATCH)` — the change belongs to the owning repo's story. Name the step and the repo. Never plan this repo's code around a guessed shape. |
 | A step owned by another repo is read as-is, unchanged | Nothing — read the current shape from the code. |
 | The contract line says `None`, but the code shows this story depends on a shape another repo is changing | `[NEEDS CLARIFICATION]: CL-n — Does this story rely on a new or changed contract from <repo>? (a) No — the current contract is unchanged (b) Yes — attach contract-<repo>.md and set the contract line to <repo>` |
-| The contract line names a repo and its contract is attached | Use the contract. The consuming code reads exactly that shape. |
+| The contract line names a repo and its contract files are attached | Use them (OpenAPI schema / store types). The consuming code reads exactly that shape. |
 
 Record the trace in two or three lines under the Feasibility basis, naming
 layers and owning repos (e.g. "API: dx_mex-coverage-service → store:
