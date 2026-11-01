@@ -88,6 +88,9 @@ Everything below serves these two goals.
 | Skip the team's testing instruction files (java-testing, angular-testing, ionic-angular-testing) | Convention drift | Apply every matching instruction; state which ones applied |
 | Use random data, current time, or external IDs without controlling them | Flaky tests | Inject clocks, fix seeds, use test fixtures |
 | Copy values from existing test resources (JSON payloads, Postman exports, WireMock stubs) into new tests or resources | They may hold real member data taken from an environment | Build request/response JSON from the OpenAPI schema / DTO types with invented values (`sample-<field>`, `1`, `false`, `2026-01-01`); reuse an existing file only by referencing it, unchanged |
+| Force a value the production code can never receive — an invalid enum constant into a typed DTO via reflection, `Enum.valueOf`, a mocked getter returning the wrong type, `doReturn` on a typed getter | The test crashes in setup or asserts behaviour no real caller can trigger; a fixing step then bends production code (or the API contract) to make it pass | Test the rule where a real caller hits it — see "Testing request validation" below; if a case cannot happen at this layer, say so in "What I noticed" and do not write the test |
+| Check a YAML / JSON / XML file (OpenAPI spec, config) with a regex over its text | Breaks on harmless layout changes (a `title:` line, key order, indentation) | Parse the file (SnakeYAML / Jackson, both on the Spring Boot test classpath) and assert on the parsed structure |
+| When fixing failing tests, add a NEW test file or class next to the broken one | The broken test stays, the suite keeps failing, and the same mistake is copied | Fix the failing test in place, or delete it if it checks something the code cannot do |
 
 **This is a hard preflight check.** Before reporting a test file done,
 verify exactly one test file was written (plus any JSON request/response
@@ -294,6 +297,27 @@ Once the coverage map is approved:
 
 - **Write the file.** Verify it exists on disk with the new content.
 
+### Testing request validation (backend REST)
+
+A request-validation rule in an AC — "an invalid `status` returns 400",
+"a missing field returns 400", "lower-case values are rejected" — is
+enforced where the request body is READ (JSON deserialisation into a
+generated DTO, Bean Validation), not inside the controller method. A
+generated enum DTO cannot hold `DONE`, so a controller unit test cannot
+express "the client sent DONE".
+
+- Send the raw request through the HTTP layer: `MockMvc`
+  (`standaloneSetup(controller).setControllerAdvice(advice)` or the
+  repo's existing MockMvc setup) with the JSON body as a string, e.g.
+  `{"date":"2026-01-01","description":"x","status":"DONE"}`, and assert
+  the HTTP status (and that the service's save method was never called).
+- Include the repo's `@ControllerAdvice` in the MockMvc setup, or the
+  status you assert is Spring's default, not the API's.
+- Keep controller-method unit tests for what the method itself decides
+  (defaulting an absent value, keeping the stored value on update).
+- An OpenAPI / config file AC (e.g. "the spec defines an enum with
+  exactly these values") is checked by parsing the file, never by regex.
+
 ### 4. Test-file preflight before reporting done
 
 Every item must pass — if any fail, do not report done.
@@ -312,6 +336,11 @@ Every item must pass — if any fail, do not report done.
 - [ ] The Arrange–Act–Assert structure is visible
 - [ ] All class names, methods, and imports referenced actually exist
       in the production code
+- [ ] No test forces a value the production code can never receive
+      (reflection, `Enum.valueOf` with an invalid constant, a mocked
+      getter returning the wrong type); request-validation ACs are tested
+      through the HTTP layer with a raw request body
+- [ ] Structured files (YAML / JSON) are parsed, not regex-matched
 - [ ] The relevant testing instructions file's rules were applied
 - [ ] The test file compiles / passes type-check
       (`mvn test-compile`, `ng build --configuration=development`) if
