@@ -144,9 +144,26 @@ clarification — remove it and resolve it as the test directs.
    implementation.
    → Remove the line. The later phases pick.
 
-Only a question that passes all three — it is about observable behaviour, the
-story genuinely leaves two or more compliant behaviours open, and those
-behaviours differ in what a test would observe — stays as
+4. **Materiality test — does the answer decide whether a stated criterion is
+   met?** Some questions pass tests 1 to 3 but only settle a sub-detail of a
+   behaviour the story already specifies: the order of items that tie under
+   a stated sort, the exact wording of an empty-state or placeholder line the
+   story did not word, the formatting of a value the story says to show, where
+   a missing value goes in a stated order, or an edge case of an edge case the
+   story already handles. Any sensible answer meets every stated criterion, a
+   reviewer can change it in minutes, and a wrong guess breaks nothing the
+   story asked for.
+   → Remove the line. Pick the conventional, deterministic answer (stable,
+   simplest, consistent with the existing code and the contract) and write it
+   as an `[ASSUMED]` AC whose basis starts `Detail default:`, naming the
+   stated behaviour it refines. List it in Section 9.
+   Keep the question when the answer changes data, security, privacy, money,
+   a contract other code relies on, or anything a stated AC or the story's
+   own wording depends on. When unsure whether it is material, keep it.
+
+Only a question that passes all four — it is about observable behaviour, the
+story genuinely leaves two or more compliant behaviours open, those behaviours
+differ in what a test would observe, and the choice is material — stays as
 `[NEEDS CLARIFICATION]`.
 
 | Invalid clarification | Test failed | Resolution |
@@ -154,12 +171,21 @@ behaviours differ in what a test would observe — stays as
 | `Should the field be added as an explicit mapping line, or should the ignore-by-default setting be removed so all matching fields map?` — story says only this field changes; other fields stay unmapped | Mechanics + Derivability | Remove. Add AC: THE endpoint SHALL NOT populate the other unmapped fields. Mechanism left to later phases |
 | `Constructor injection or field injection for the new dependency?` | Mechanics (and settled by constraints) | Remove |
 | `Validate the header in a filter or in the controller?` — both produce the same 400 | Mechanics + Outcome-equivalence | Remove; keep the 400 AC |
-| `Return 404 or 200-empty when no match exists?` — story silent, tests differ | — passes all three | Keep as `[NEEDS CLARIFICATION]` |
+| `Two scheduled visits share a date: keep array order or sort by id?` — story says "sorted by date ascending" | Materiality | Remove. `[ASSUMED]` AC: ties ordered by `id` ascending. Basis: Detail default: refines the stated date sort |
+| `Show a message when the list is empty, and what text?` — story lists the items, silent on none | Materiality | Remove. `[ASSUMED]` AC: an empty list shows "No <items>." Basis: Detail default: refines the stated list |
+| `Return 404 or 200-empty when no match exists?` — story silent, tests differ, other code relies on the status | — passes all four | Keep as `[NEEDS CLARIFICATION]` |
 
 **Why this matters.** Every clarification halts the harness and costs a full
 re-run. A question that the story already answers, or that only a later phase
 can answer, halts the run for nothing and teaches developers to distrust the
-gate.
+gate. Detail questions are the worst case because each answer exposes the next
+one down. One story went through three halts in a row: display rules, then the
+date format, then tie order. Every answer was accepted, and each re-run found
+a finer question.
+
+**Ask everything in one pass.** Before writing the file, walk every behaviour
+the story asks for, together with the answers already in the story, and raise
+every material question now. Do not hold one back for a later run.
 
 ---
 
@@ -264,14 +290,18 @@ Every AC is one of three kinds:
 - The story leaves a question open on its face, but its own constraints admit
   only one answer → neither marker. Write a normal AC traced to the deciding
   clause (see "Non-blocking-question scan", test 2).
+- The story specifies a behaviour and leaves only an immaterial sub-detail of it
+  open (see "Non-blocking-question scan", test 4) → `[ASSUMED]` with a basis
+  starting `Detail default:`. This is the ONLY case where a missing dimension
+  of a requested behaviour is `[ASSUMED]` rather than `[NEEDS CLARIFICATION]`.
 
 `[ASSUMED]` is **not** an escape hatch from the clarification gate. Marking a
 missing dimension of a requested behaviour as `[ASSUMED]` bypasses the gate and
 ships a guess as a requirement. When genuinely torn **between observable
 behaviours the story leaves open**, use `[NEEDS CLARIFICATION]` — a halted run
 costs one re-run; an invented requirement implemented as fact costs a rewrite.
-"Genuinely torn" never covers a choice of implementation mechanism or a choice
-the story's own text already settles.
+"Genuinely torn" never covers a choice of implementation mechanism, a choice
+the story's own text already settles, or an immaterial detail default (test 4).
 
 **Test the marker against its own basis before writing it.** If the basis you
 are about to write names the story — "story decision #2", "stated in the story",
@@ -296,8 +326,12 @@ Format, with the basis stated so a reviewer can judge it quickly:
 List every assumed criterion in **Section 9 — Assumptions** as well, so a
 reviewer can scan them without reading the full AC list.
 
-**Cap: if more than a third of the ACs are `[ASSUMED]`, stop.** The story is a
-seed, not a specification, and the context is mostly the model's invention. In
+**Cap: if more than a third of the ACs are `[ASSUMED]`, stop.** Detail
+defaults (basis `Detail default:`) are not counted: they refine behaviour the
+story asked for rather than invent it. If detail defaults alone outnumber the
+story's own criteria, though, the story is too thin; apply the cap to them too.
+Otherwise the story is a seed, not a specification, and the context is mostly
+the model's invention. In
 interactive mode, tell the developer the story needs refining first. In CI mode,
 write the file and add one `[NEEDS CLARIFICATION]` line stating the story is too
 thin to specify.
