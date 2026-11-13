@@ -68,6 +68,7 @@ copilot-toolkit/
 │       ├── build-copilot-instructions-angular-frontend/           [workflow — scan Angular repo → fill copilot-instructions.md]
 │       ├── build-copilot-instructions-mobile-frontend/            [workflow — scan Ionic repo → fill copilot-instructions.md]
 │       ├── analyze-microservice/                                  [workflow — recursive dependency trace → analysis document]
+│       ├── analyze-bug/                                           [workflow — bug report + evidence → root-cause and impact analysis document, no fix]
 │       ├── sequence-diagram-microservice/                         [workflow — recursive trace → Mermaid sequence diagram]
 │       ├── review-angular-code/                                   [checklist — review Angular changes (RxJS, NgRx, control flow, null safety…) → findings]
 │       ├── security-review-backend/                               [checklist — Java/Spring WebFlux security + PHI review → [ISSUE] (SECURITY) lines / report]
