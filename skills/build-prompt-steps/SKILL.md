@@ -229,6 +229,15 @@ Do not read every file in the repo. Read only what the story directly
 touches. If the developer's repo is unfamiliar, ask them to point at
 the relevant directory before proceeding.
 
+**New integration? Find this repo's existing pattern first.** When the story
+adds a call to a system this repo does not call yet (a SOAP service, a REST
+API), find the closest existing integration of the same kind in this repo —
+its client classes, its configuration class, its request builder and its
+mapper — and plan the new one with the same structure and naming. Name that
+precedent in Pre-flight. Port behaviour (the logic being moved) from the
+context file's `## Reference repo findings`, but follow THIS repo's wiring,
+not the other repo's.
+
 ### 4. Determine plan granularity
 
 Aim for **8–12 steps** for a typical story. Adjust based on size:
@@ -399,6 +408,29 @@ every later step references instead of repeating the path.]
 > springdoc / swagger annotations change, and the YAML is updated in the same
 > change). JSON request/response test resources the tests need are listed too,
 > with invented values only.
+
+## External Classes
+
+[Classes the planned code needs from outside this repo, when this plan is the
+first use of them here or their source is not confirmed. Leave out the JDK and
+libraries the changed code already imports. Write "None." when there are none.]
+
+| Class or import | Source | Evidence |
+|-----------------|--------|----------|
+
+> Source is one of: `DEPENDENCY` (declared in a build file — evidence: the
+> file), `GENERATED` (built from a schema file in this repo — evidence: the
+> file), `STORY` (the story or an attachment says where it comes from),
+> `COPY_FROM_REFERENCE` (exists in a reference repo as committed or generated
+> code and must be copied in unchanged — evidence: `<repo>:<path>` from the
+> context file's Reference repo findings, the folder or file to copy),
+> `NEW_DEPENDENCY` (a library not yet in the build file — evidence: its
+> coordinates, copied from a file you read), `UNKNOWN`.
+> One row per package or folder is enough for a group of generated classes.
+> Never invent a name or write a placeholder such as `<MyClient>`: if the name
+> is not known, the source is `UNKNOWN`. The harness halts before coding on
+> `UNKNOWN`, `NEW_DEPENDENCY` and `COPY_FROM_REFERENCE`, and tells a person
+> exactly what to add.
 
 ## Signature changes
 
@@ -636,6 +668,11 @@ Before showing the plan to the developer, verify:
       named by its fully qualified name
 - [ ] A Contract usage block exists — "None" or one row per element read or
       written across a repo boundary, each with exactly one shape
+- [ ] An External Classes block exists — "None." or one row per class or
+      package from outside this repo, with a source and evidence; no
+      placeholder names anywhere in the plan (Impacted Files included)
+- [ ] A new integration follows this repo's existing pattern for the same
+      kind of integration, named in Pre-flight
 - [ ] When an endpoint, request or response changes, the OpenAPI file is an
       Impacted File and a step updates it
 - [ ] No step accepts two alternative payload shapes unless an AC asks for

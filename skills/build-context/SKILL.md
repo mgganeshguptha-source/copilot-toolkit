@@ -847,6 +847,12 @@ must pass — if any fail, go back to section 4 and ask one more question.
       otherwise there is a `SCOPE_MISMATCH` blocker or a contract clarification
 - [ ] When the contract line names a repo, every AC about that data traces to
       the attached contract
+- [ ] Code this repo lacks was searched for in the reference repos (including
+      committed generated code and WSDL/XSD/OpenAPI files) before any
+      `MISSING_DEPENDENCY` blocker; what was found is under
+      `## Reference repo findings` with repo, branch and path
+- [ ] This repo's existing pattern for a similar integration is named, by
+      layer, in the Feasibility basis
 
 ### 7a. Score the story, then assess feasibility
 
@@ -908,6 +914,54 @@ context file where repo names belong.
 whose ACs could only be met by code that handles "either the old or the new
 shape" is missing its contract — that is a blocker or a clarification, not an
 implementation detail.
+
+#### Code this repo does not have — look in the reference repos first
+
+When a step in the trace needs code this repo does not have — a client for a
+backend it does not call yet, the request/response classes for that call, the
+logic being moved here from another system — find where it lives today before
+calling it missing. (OP018-6434: the Totals 2.0 SOAP classes were committed,
+generated code inside the MPA monolith, not a library; two runs and a manual
+investigation were needed to find that.)
+
+1. **Reference repos.** If `.harness/repo_list.yaml` lists a repo that likely
+   holds it, ask for it (`REFERENCE REPO NEEDED: <repo> — <what you need>`).
+   When it is checked out, search it — including committed generated code
+   (`generatedSources/`, `generated/`, any `src/**/java` tree) and contract
+   files (`*.wsdl`, `*.xsd`, OpenAPI files) — for:
+   - the classes the call needs (request, response, client), and whether they
+     come from a library (a build-file dependency), from a schema file built
+     at build time, or are committed generated code;
+   - the code that makes the same call today (the logic being moved: DAO,
+     translator, request builder) and the configuration it reads (endpoint
+     property name, timeouts, headers).
+2. **This repo's own pattern.** Check whether this repo already integrates
+   with something similar (another SOAP service, another REST client) and how
+   it does it: committed generated classes, a client configuration class, a
+   builder and a mapper. The new integration follows that pattern, not the
+   other repo's wiring. Name the pattern by layer in the Feasibility basis
+   (e.g. "existing SOAP integrations: committed generated client + client
+   configuration + builder + mapper"); prompt_steps finds the files.
+3. **Record it** under `## Reference repo findings` (format below). Later
+   phases cannot read the reference repos — this section is the only way the
+   plan learns what was found.
+4. **Blocking.** Classes found in a reference repo are NOT a
+   `MISSING_DEPENDENCY` blocker: the plan marks them `COPY_FROM_REFERENCE` (or
+   `NEW_DEPENDENCY` when a library provides them) and the harness asks a person
+   to put them in place before coding. Raise `MISSING_DEPENDENCY` only when the
+   code exists in neither this repo nor any reference repo.
+
+**`## Reference repo findings` format** — one line per finding:
+
+```
+## Reference repo findings
+- Classes: <package or folder> — <committed generated code | library <groupId:artifactId:version> | built from <schema file>> — <repo>@<branch>:<path>
+- Existing caller to port: <class> — <repo>@<branch>:<path>
+- Configuration: <property name or setting> — <repo>@<branch>:<path>
+- Pattern in this repo: <layer description, e.g. "generated SOAP client + client config + builder + mapper">
+```
+
+No secrets, credentials or member data. Copy names and paths only, never code.
 
 #### Design trigger — does this story need a technical design?
 
@@ -1078,7 +1132,12 @@ vscode-file:// URLs.)
 
 These four belong in the analysis prompt step that runs *after* context.md,
 because Copilot needs to discover them by reading the codebase — not be told
-upfront:
+upfront.
+
+**One exception: `## Reference repo findings`.** Names and paths from
+reference repos (other repos checked out read-only for this run) go there,
+because later phases cannot read those repos. It never names files of THIS
+repo — those are still discovered by the analysis step.
 
 - File names or paths (`OwnerSearchController.java`, `appointment.component.ts`)
 - Class, component, or service names
