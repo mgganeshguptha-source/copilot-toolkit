@@ -10,7 +10,7 @@ reactive types. Do not use Spring MVC / blocking servlet patterns.
 
 ## Class-level
 
-- Annotate the class with `@RestController`, `@RequiredArgsConstructor`, and `@Log4j2`.
+- Annotate the class with `@RestController`, `@RequiredArgsConstructor`, and `@Slf4j`.
 - Implement the OpenAPI-generated `*Api` interface (e.g. `ClaimsApi`). Do **not** add
   `@RequestMapping` or per-method mapping annotations — the paths are defined in the
   generated interface.
@@ -39,9 +39,10 @@ Build the whole handler as a single reactive chain. A typical order is:
    using a non-consuming peek, e.g.
    `.mapNotNull(peek(req -> log.info("Request received ...")))`.
    Never log by subscribing separately or by blocking.
-2. **Validate as a `.filter()` step** — input validation is a `.filter(...)` (or
-   `Validator::validate`) that returns an **empty `Mono`** on invalid input. Do not throw
-   an exception at the controller level for validation failures.
+2. **Validate with Bean Validation** — `@Valid` on the request body (constraints come from
+   the OpenAPI `required` fields and model annotations); sanitise strings. Invalid input
+   fails with a validation error that `SharedControllerAdvice` maps to 400. Do not return
+   an empty `Mono` for invalid input.
 3. **Delegate to the service** with `.flatMap(service::method)`.
 4. **Post-process** (e.g. add a response trace header) with `.doOnNext(...)`.
 
@@ -54,9 +55,10 @@ Build the whole handler as a single reactive chain. A typical order is:
 
 ## Logging
 
-- Use `@Log4j2` (Lombok). Log the entry of every endpoint with the `messageId`
-  (request trace ID), `appName`, and the request payload, e.g.
-  `log.info("Request received messageId:{} appName:{} request:{}", messageId, appName, request)`.
+- Use `@Slf4j` (Lombok) — see `logging-java.instructions.md`. Log the entry of every
+  endpoint with the `messageId` (request trace ID) and `appName`. **Never log the request
+  payload** (may contain PHI), e.g.
+  `log.info("Request received messageId:{} appName:{}", messageId, appName)`.
 - `messageId` is a header passed in from upstream and threaded through the whole chain —
   propagate it, do not generate a new one.
 
@@ -71,7 +73,8 @@ Build the whole handler as a single reactive chain. A typical order is:
 - Do not block anywhere in the chain (`.block()`, `.blockFirst()`, `.blockLast()`) — strict ban.
 - Do not use `.collectList()` — use `.buffer()` or `.reduce()` instead.
 - Do not add `@RequestMapping` (it is in the generated `*Api` interface).
-- Do not throw exceptions for input validation — return an empty `Mono` from a filter.
+- Do not return an empty `Mono` for invalid input — use `@Valid` and let the shared advice return 400.
+- Do not log request or response payloads.
 - Do not add a per-service `@ControllerAdvice`.
 - Do not add retry logic here — retries are handled by infrastructure (see the WebClient
   conventions).
