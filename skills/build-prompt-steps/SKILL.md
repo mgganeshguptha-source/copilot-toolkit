@@ -238,6 +238,18 @@ precedent in Pre-flight. Port behaviour (the logic being moved) from the
 context file's `## Reference repo findings`, but follow THIS repo's wiring,
 not the other repo's.
 
+**Reuse existing methods before planning new ones.** For every behaviour a
+step needs (a downstream call, a response unwrap, a mapping, a null check, a
+utility), search the classes the story touches, their collaborators, and the
+shared/common modules and libraries for a method that already does it. Plan
+the step to call that method. A step may add a new method to a shared or
+common class (common request/client classes, base classes, shared utils) only
+when Pre-flight names the existing methods considered and says why none fits.
+When the class being changed already handles a concern a certain way (how it
+calls downstream, wraps or unwraps the response, null-checks results), the
+step follows that same pattern — name the method it copies in the step's
+constraints.
+
 ### 4. Determine plan granularity
 
 Aim for **8–12 steps** for a typical story. Adjust based on size:
@@ -673,6 +685,9 @@ Before showing the plan to the developer, verify:
       placeholder names anywhere in the plan (Impacted Files included)
 - [ ] A new integration follows this repo's existing pattern for the same
       kind of integration, named in Pre-flight
+- [ ] No step adds a method to a shared/common class unless Pre-flight
+      names the existing methods considered and why none fits; steps that
+      touch an existing class follow its existing call/response pattern
 - [ ] When an endpoint, request or response changes, the OpenAPI file is an
       Impacted File and a step updates it
 - [ ] No step accepts two alternative payload shapes unless an AC asks for
