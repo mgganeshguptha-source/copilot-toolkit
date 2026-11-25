@@ -85,10 +85,9 @@ The central mapper:
 - Custom validators extend `ConstraintValidator`. Never validate by writing imperative checks in the controller method — moves error handling out of the central mapper.
 - Validation errors are 400 with `systemMessages[]` populated.
 
-## Retry and circuit-breaker
+## Retries and circuit breaker
 
-- Use Spring Retry or Resilience4j; never write raw `for (i=0; i<3; i++) try {...}` loops.
-- Retry only on technical/downstream failures, never on business errors — business errors don't get better by retrying.
+- Do not add service-level retries (`.retry()`, `.retryWhen()`, Spring Retry, Resilience4j `Retry`, retry loops). Retries are owned by the infrastructure — see `reactive-webclient.instructions.md`. Add one only when the story explicitly asks for it.
 - Circuit breaker/fallback for external SOAP calls (see `engineering-process-v2.instructions.md`). Do not let a failing downstream cascade into thread pool exhaustion.
 
 ## Async / reactive

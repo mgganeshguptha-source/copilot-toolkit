@@ -25,5 +25,5 @@ applyTo: "**"
 - Description: purpose, components, DB changes, staging steps.
 - Package and naming conventions followed; no dead or large commented-out code.
 - Logging and correlation/trace id present where appropriate.
-- External-call timeouts and retries present.
+- External-call timeouts present (configured centrally — `client.mappings.<service-name>.timeout`); no service-level retries added (infrastructure owns retries).
 - Configuration keys documented; Sonar/Checkstyle warnings resolved or justified; Fortify reviewed.
