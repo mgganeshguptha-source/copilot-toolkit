@@ -33,10 +33,10 @@ applyTo: "src/main/java/**/*.java"
 - Copy the shared `ObjectMapper` (`objectMapper.copy()`) before changing cache-specific settings; never mutate the application-wide mapper.
 - Log cache HIT / MISS / PUT at INFO or DEBUG with cache name and key (never the value, which may be PHI).
 
-## Cache key confirmation (mandatory gate before implementation)
+## Cache plan (required in the design/plan before any caching code)
 
-- Once the design is complete and before writing any caching code, present a brief cache plan and **stop for the user's confirmation**. Do not implement caching, key generators, cache names, or TTL entries until the user confirms.
-- The brief must be short and contain, for each cache:
+- Caching is decided in the design or plan, never while coding. Any design or plan that adds, changes or removes a cache must contain a short cache plan, so the person who reviews the plan approves the keys before code exists.
+- The cache plan contains, for each cache:
 
   | Cache name | Data cached (response/model, source call) | Key fields | Example generated key | TTL | Per-user data? | Eviction/reload trigger |
   |---|---|---|---|---|---|---|
@@ -44,8 +44,9 @@ applyTo: "src/main/java/**/*.java"
   - Example key must show the full Redis form: `<keyPrefix><cacheName>::<generatedKey>`.
   - State what is deliberately **not** cached and why (empty/error results, PHI-heavy or user-specific data, session-scoped data).
   - For a migration, add a column mapping each monolith cache (`CacheNames` constant, `EhcacheKeyGenUtil` key parts, TTL) to its microservice equivalent, and flag any key or name that would change.
-- If the user requests changes, update the brief and ask again. Proceed only after an explicit confirmation of the keys.
-- If the user rejects caching for a call, implement without it.
+- When coding, implement only the caches, names, keys and TTLs the plan lists, exactly as listed. Do not add, rename or re-key a cache that is not in the plan.
+- If caching looks useful but the plan has no cache plan for it, do not add it — note it in the summary as a suggestion for the plan.
+- If the story or plan says not to cache a call, implement without caching.
 
 ## Cache names, TTLs and keys
 
