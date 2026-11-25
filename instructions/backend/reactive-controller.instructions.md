@@ -41,8 +41,9 @@ Build the whole handler as a single reactive chain. A typical order is:
    Never log by subscribing separately or by blocking.
 2. **Validate with Bean Validation** — `@Valid` on the request body (constraints come from
    the OpenAPI `required` fields and model annotations); sanitise strings. Invalid input
-   fails with a validation error that `SharedControllerAdvice` maps to 400. Do not return
-   an empty `Mono` for invalid input.
+   fails with a validation error that `SharedControllerAdvice` maps to 400. A `.filter(...)`
+   returning an empty `Mono` is only for rules the contract cannot express (see
+   `reactive-conventions-v2.instructions.md`).
 3. **Delegate to the service** with `.flatMap(service::method)`.
 4. **Post-process** (e.g. add a response trace header) with `.doOnNext(...)`.
 
@@ -73,7 +74,7 @@ Build the whole handler as a single reactive chain. A typical order is:
 - Do not block anywhere in the chain (`.block()`, `.blockFirst()`, `.blockLast()`) — strict ban.
 - Do not use `.collectList()` — use `.buffer()` or `.reduce()` instead.
 - Do not add `@RequestMapping` (it is in the generated `*Api` interface).
-- Do not return an empty `Mono` for invalid input — use `@Valid` and let the shared advice return 400.
+- Do not use an empty-`Mono` filter for rules `@Valid` / the contract can express.
 - Do not log request or response payloads.
 - Do not add a per-service `@ControllerAdvice`.
 - Do not add retry logic here — retries are handled by infrastructure (see the WebClient
