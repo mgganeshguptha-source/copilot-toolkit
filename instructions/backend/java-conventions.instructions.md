@@ -70,7 +70,7 @@ applyTo: "src/main/java/**/*.java"
 ## Functional style
 
 - Prefer streams/lambdas/`Optional` over imperative loops; use `Predicate`, `Function`, `Consumer`, records/pairs for temporary structures.
-- Method references over lambdas (`Integer::sum`). `filter()` before `map()`. Use `sorted()` sparingly. No nested streams (use local variables). No parallel streams unless justified. Reactor rules: `reactive-conventions-v2`.
+- Method references over lambdas (`Integer::sum`). `filter()` before `map()`. Use `sorted()` sparingly. No nested streams (use local variables). No parallel streams unless justified. Reactor rules: `reactive-conventions-v2.instructions.md`.
 
 ## Dependencies and versions
 
