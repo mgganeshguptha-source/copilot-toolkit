@@ -47,6 +47,7 @@ copilot-toolkit/
 │   │   │   ├── openapi-contract-first-v2.instructions.md      [OpenAPI contract-first — module layout, server/client generation]
 │   │   │   ├── owasp-java.instructions.md                     [security — OWASP Top 10 for Spring Boot]
 │   │   │   ├── performance-java.instructions.md               [performance — N+1, transactions, connection pool, async]
+│   │   │   ├── reactive-conventions-v2.instructions.md        [Reactor rules — doOn* for logging only, zip, switchIfEmpty, central timeouts]
 │   │   │   ├── reactive-controller.instructions.md            [WebFlux controllers — generated *Api, no blocking, reactive chain]
 │   │   │   ├── reactive-testing.instructions.md               [Reactor tests — StepVerifier, WebClient test patterns]
 │   │   │   └── reactive-webclient.instructions.md             [WebClient clients — reactive calls, error mapping]
@@ -80,6 +81,7 @@ copilot-toolkit/
 │       ├── analyze-bug/                                           [workflow — bug report + evidence → root-cause and impact analysis document, no fix]
 │       ├── sequence-diagram-microservice/                         [workflow — recursive trace → Mermaid sequence diagram]
 │       ├── review-angular-code/                                   [checklist — review Angular changes (RxJS, NgRx, control flow, null safety…) → findings]
+│       ├── code-review-backend/                                   [checklist — reuse of existing methods, class patterns, backend standards → [ISSUE] (REUSE) lines]
 │       ├── security-review-backend/                               [checklist — Java/Spring WebFlux security + PHI review → [ISSUE] (SECURITY) lines / report]
 │       └── security-review-angular/                               [checklist — Angular / Ionic security + PHI review → [ISSUE] (SECURITY) lines / report]
 │
