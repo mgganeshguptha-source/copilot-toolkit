@@ -228,8 +228,8 @@ one method, one component).
   `.github/instructions/` files have an applyTo glob that matches it.
   State briefly which ones apply:
 
-  > Editing OwnerController.java — applying java-conventions, owasp-java,
-  > logging-java, error-handling-java, api-design, performance-java.
+  > Editing OwnerController.java — applying java-conventions-v2, owasp-java,
+  > logging-java-v2, error-handling-java-v2, api-design-v2, performance-java.
 
   This is not optional. Every matching instruction must shape the code.
 
@@ -434,7 +434,7 @@ context files and prompt-steps files.
 - **Started:** YYMMDD-HH:MM:SS
 - **Completed:** YYMMDD-HH:MM:SS
 - **Files changed:** path/to/File1.java, path/to/File2.java
-- **Instructions applied:** java-conventions, owasp-java, logging-java
+- **Instructions applied:** java-conventions-v2, owasp-java, logging-java-v2
 - **Design decision chosen (if applicable):** [verbatim choice]
 - **Developer comment (if any):** [verbatim text]
 - **Notes:** [anything the skill flagged in "What I noticed"]

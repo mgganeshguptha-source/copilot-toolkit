@@ -34,13 +34,23 @@ copilot-toolkit/
 │   │   ├── logging-standards.instructions.md                      [correlation ID contract, log levels, mandatory fields]
 │   │   │
 │   │   ├── backend/
-│   │   │   ├── java-conventions.instructions.md                   [code style — package structure, naming, formatting]
-│   │   │   ├── java-testing.instructions.md                       [test style — JUnit/Mockito patterns, coverage rules]
-│   │   │   ├── owasp-java.instructions.md                         [security — OWASP Top 10 for Spring Boot]
-│   │   │   ├── logging-java.instructions.md                       [logging — SLF4J, MDC, structured JSON, parameterised logs]
-│   │   │   ├── error-handling-java.instructions.md                [error handling — exception hierarchy, @ControllerAdvice, RFC 7807]
-│   │   │   ├── api-design.instructions.md                         [REST conventions — URLs, status codes, pagination, versioning]
-│   │   │   └── performance-java.instructions.md                   [performance — N+1, transactions, connection pool, async]
+│   │   │   ├── api-design-v2.instructions.md                  [REST conventions — /v1 paths, status codes, Response<T>, pagination, versioning]
+│   │   │   ├── caching-v2.instructions.md                     [caching — reactive Redis, cache keys/TTLs, cache plan in design, MPA cache]
+│   │   │   ├── config-security-libs-v2.instructions.md        [config, encrypted secrets, common utils + security libraries]
+│   │   │   ├── engineering-process-v2.instructions.md         [Sonar/Fortify, git branching, build/deploy, PR checklists]
+│   │   │   ├── error-handling-java-v2.instructions.md         [error handling — GlobalException, SharedControllerAdvice, Response<T>]
+│   │   │   ├── java-conventions-v2.instructions.md            [code style — naming, language rules, methods, reuse-before-add]
+│   │   │   ├── java-testing-v2.instructions.md                [test style — TDD, JUnit/Mockito patterns, fixtures, coverage rules]
+│   │   │   ├── layering-architecture-v2.instructions.md       [layers, package structure, Spring DI, Oracle/Mongo persistence]
+│   │   │   ├── logging-java-v2.instructions.md                [logging — SLF4J, messageId trace, no payloads, MPA, CloudWatch]
+│   │   │   ├── lombok-mapstruct-v2.instructions.md            [Lombok usage, MapStruct setup and mappers]
+│   │   │   ├── openapi-contract-first-v2.instructions.md      [OpenAPI contract-first — module layout, server/client generation]
+│   │   │   ├── owasp-java.instructions.md                     [security — OWASP Top 10 for Spring Boot]
+│   │   │   ├── performance-java.instructions.md               [performance — N+1, transactions, connection pool, async]
+│   │   │   ├── reactive-conventions-v2.instructions.md        [Reactor rules — doOn* for logging only, zip, switchIfEmpty, central timeouts]
+│   │   │   ├── reactive-controller.instructions.md            [WebFlux controllers — generated *Api, no blocking, reactive chain]
+│   │   │   ├── reactive-testing.instructions.md               [Reactor tests — StepVerifier, WebClient test patterns]
+│   │   │   └── reactive-webclient.instructions.md             [WebClient clients — reactive calls, error mapping]
 │   │   │
 │   │   ├── angular-frontend/
 │   │   │   ├── angular-conventions.instructions.md                [code style — component/service structure, naming]
@@ -71,6 +81,7 @@ copilot-toolkit/
 │       ├── analyze-bug/                                           [workflow — bug report + evidence → root-cause and impact analysis document, no fix]
 │       ├── sequence-diagram-microservice/                         [workflow — recursive trace → Mermaid sequence diagram]
 │       ├── review-angular-code/                                   [checklist — review Angular changes (RxJS, NgRx, control flow, null safety…) → findings]
+│       ├── code-review-backend/                                   [checklist — reuse of existing methods, class patterns, backend standards → [ISSUE] (REUSE) lines]
 │       ├── security-review-backend/                               [checklist — Java/Spring WebFlux security + PHI review → [ISSUE] (SECURITY) lines / report]
 │       └── security-review-angular/                               [checklist — Angular / Ionic security + PHI review → [ISSUE] (SECURITY) lines / report]
 │
@@ -285,7 +296,7 @@ Developers should note which version their project is synced from. When updating
 - **Copilot adherence to instructions is probabilistic.** Even with hardened instructions, Copilot can drift — especially over long sessions. Critical guardrails (HIPAA, OWASP, prompt-injection) should be backed by code review and CI security scans, not relied on Copilot alone.
 - **The loop skills depend on the developer attaching the right files each invocation.** If the wrong context file is attached, the wrong story gets executed. The skills check for plausibility (filename pairing, expected sections) but cannot prevent a deliberately wrong attachment.
 - **IntelliJ path-specific instruction support** is plugin-version-dependent. Mobile team should verify before depending on path-scoped rules.
-- **Convention files are first drafts.** `java-conventions`, `angular-conventions`, `ionic-angular-conventions`, and their testing counterparts encode reasonable defaults but are not yet ratified team standards. Each team should review and align them to their actual codebase.
+- **Convention files are first drafts.** `java-conventions-v2`, `angular-conventions`, `ionic-angular-conventions`, and their testing counterparts encode reasonable defaults but are not yet ratified team standards. Each team should review and align them to their actual codebase.
 - **Guardrail files are first drafts.** HIPAA, OWASP, security rules are sensible defaults — they should be reviewed by your security and compliance partners before treating them as authoritative.
 - **Auto-sync from toolkit to project repos is not built yet.** Manual copy is the current workflow.
 - **No automated CI test for skill quality.** Variance run-to-run is inherent; real-repo testing surfaces issues better than synthetic.

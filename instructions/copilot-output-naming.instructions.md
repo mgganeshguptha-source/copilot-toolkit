@@ -95,8 +95,8 @@ alternative names or locations.
   where NAME describes the scope of the rules (language, layer, or tool).
 - **Must include** an `applyTo` frontmatter block with a glob pattern.
 - **Examples:**
-  - `.github/instructions/java-conventions.instructions.md`
-  - `.github/instructions/java-testing.instructions.md`
+  - `.github/instructions/java-conventions-v2.instructions.md`
+  - `.github/instructions/java-testing-v2.instructions.md`
   - `.github/instructions/angular-conventions.instructions.md`
 
 ---

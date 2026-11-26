@@ -20,7 +20,7 @@ values. Stack: JUnit 5 + Mockito, with `StepVerifier` (Reactor Test) for reactiv
 - Wrap the publisher under test in `StepVerifier.create(...)` and assert its signals:
   - Value(s): `.expectNext(expected)` / `.expectNextMatches(...)` / `.expectNextCount(n)`.
   - Completion: `.verifyComplete()`.
-  - Empty (e.g. a validation filter that returns empty `Mono`): `.expectComplete()` with no
+  - Empty (e.g. a downstream call that returns no data): `.expectComplete()` with no
     `expectNext`, or `.expectNextCount(0).verifyComplete()`.
   - Errors: `.expectError(SomeException.class)` / `.expectErrorMatches(...)` then `.verify()`.
 - Every `StepVerifier` chain must end in a terminal verify call (`.verifyComplete()`,
@@ -88,7 +88,7 @@ reason.
 ## What to cover
 
 - Cover the reactive branches explicitly: the happy path (value emitted + completes), the
-  empty path (e.g. validation filter returns empty `Mono`), and the error path
+  empty path (e.g. downstream returns `Mono.empty()`), and the error path
   (dependency emits `Mono.error`). Reactive coverage is easy to under-count if the empty and
   error branches are not each driven by their own test.
 - Assert the composed behaviour (the operators in the chain), not just that the dependency was

@@ -26,7 +26,7 @@ Cold start budget: **≤ 3s to interactive on mid-tier Android**. Splash → fir
 - Any list that may grow beyond ~30 visible items uses Ionic's `<ion-virtual-scroll>` (deprecated in some versions) or `@angular/cdk/scrolling`'s `cdk-virtual-scroll-viewport`.
 - `*ngFor` without virtualization on a 200-item list renders 200 DOM trees — visible jank on scroll, especially on Android.
 - `trackBy` is mandatory (see Angular performance rules).
-- Infinite scroll: use Ionic's `<ion-infinite-scroll>` with cursor-based pagination from the backend (see `api-design.instructions.md`).
+- Infinite scroll: use Ionic's `<ion-infinite-scroll>` with cursor-based pagination from the backend (see `api-design-v2.instructions.md`).
 
 ## Images
 

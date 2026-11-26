@@ -4,6 +4,12 @@ applyTo: "src/test/java/**/*.java"
 
 # Java Testing Conventions (Spring Boot)
 
+## Approach
+
+- Follow **TDD**: write the test first for new behaviour.
+- CI: unit tests run in the CI build and JaCoCo coverage criteria are configured in the build, so new code must carry tests. Coverage is verified by the build, not claimed by Copilot.
+- Every module keeps a `src/test` structure, even when empty.
+
 ## Test generation workflow
 
 When the developer asks to generate tests for a class — however briefly phrased ("write tests for X", "JUnit for X", "test this class", or with the file open and any test-related ask) — follow this exact workflow. Do not require the developer to specify scope, style, or coverage targets — infer them.
@@ -92,7 +98,8 @@ If none apply, do not ask — generate.
 
 - **Pure unit tests:** no Spring context, no real database. Deterministic and fast. Use `@ExtendWith(MockitoExtension.class)`.
 - **Repository tests:** `@DataJpaTest`. Use an in-memory database (H2) unless the codebase already uses Testcontainers — match the existing pattern.
-- **Controller tests:** `@WebMvcTest` with `MockMvc`. Assert status codes, response shape (RFC 7807 fields per `error-handling-java.instructions.md`), and controller-to-service interactions.
+- **Controller tests:** `@WebMvcTest` with `MockMvc`. Assert status codes, response shape (the standard `Response<T>` envelope per `error-handling-java-v2.instructions.md`), and controller-to-service interactions.
+- **Mappers (MapStruct), translators and utility classes** get their own isolated unit tests.
 - **Full integration tests:** `@SpringBootTest`. Mock external dependencies with `@MockBean`. Naming convention: `*IT.java` if the project separates integration tests via Failsafe; otherwise `*Test.java`.
 - **Do not use a real database connection in unit tests.** Repository tests use the in-memory or container DB only.
 
@@ -114,12 +121,19 @@ If none apply, do not ask — generate.
 - Cover, at minimum: happy path, negative cases, edge cases, and null/empty inputs (see Coverage section for specifics).
 - Each test asserts one behaviour. Prefer several focused tests over one test with many assertions.
 - Test method names should describe behaviour, not implementation. Use the style in existing tests — common patterns: `should_returnX_when_Y`, `givenX_whenY_thenZ`, or plain `methodName_scenario_expectedResult`.
+- Setup and teardown: use `@BeforeEach` / `@BeforeAll` / `@AfterEach` / `@AfterAll`.
+- Use `@ParameterizedTest` to run one scenario with multiple data sets instead of copy-pasted tests.
+- Use helper/builder functions to reduce mock-data duplication.
+
+## Test data fixtures
+
+- Maintain **input and output JSON fixtures** under `src/test/resources` for request/response mapping tests; load them via helpers rather than building large payloads inline.
 
 ---
 
 ## Coverage
 
-This project's coverage thresholds (enforced by JaCoCo in `pom.xml`):
+This project's coverage thresholds (enforced by JaCoCo in the build — `pom.xml` or `build.gradle`):
 - **Line coverage: ≥ 90% per class**
 - **Branch coverage: ≥ 80% per class**
 
@@ -161,7 +175,7 @@ Then list:
 - Branches you could not cover and why
 - Anything that requires the developer to verify with JaCoCo
 
-The developer runs `mvn verify` (or `mvn jacoco:report`) to get the real numbers from JaCoCo.
+The developer runs `mvn verify` / `mvn jacoco:report` (Maven) or `gradlew test jacocoTestReport` (Gradle) to get the real numbers from JaCoCo.
 
 ---
 
@@ -235,7 +249,3 @@ If the developer reports compilation errors after generation, fix them in a sing
 ## Refusal pattern
 
 > ⚠️ Java testing guardrail: <one-line rule>. Suggested alternative: <code>.
-
----
-
-|

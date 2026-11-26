@@ -41,8 +41,9 @@ Backend performance rules. Focus on the cheapest mistakes that cause production 
 ## Caching
 
 - Cache reads that are expensive AND tolerant of staleness. Do not cache PHI in a process-level cache without TTL and access control.
-- Use Spring `@Cacheable` with Caffeine (in-process) or Redis (distributed). Set explicit TTL — never unbounded.
-- Cache invalidation: on the write path, evict via `@CacheEvict`. Document the invalidation strategy in a comment.
+- Microservices cache in Redis only, reactively (`ReactiveRedisTemplate`); no Caffeine/Ehcache. Caffeine L1 + Redis L2 is for the MPA monolith only. Full rules: `caching-v2.instructions.md`.
+- Set explicit TTL per cache — never unbounded.
+- Cache invalidation: evict on the write path or on a reload flag (see `caching-v2.instructions.md`). Document the invalidation strategy in a comment.
 - Never cache responses that depend on the authenticated user without keying the cache by user.
 
 ## Async and concurrency
@@ -64,7 +65,7 @@ Backend performance rules. Focus on the cheapest mistakes that cause production 
 - Avoid loading large result sets into memory. Stream from JDBC or use cursor pagination.
 - Be careful with `@Cacheable` on methods returning large objects — heap fills quickly.
 - Don't hold large objects in static fields ("just in case") — pinned in old gen forever.
-- Watch for memory leaks: thread-locals not cleared, listeners not removed, MDC not cleared (see `logging-java.instructions.md`).
+- Watch for memory leaks: thread-locals not cleared, listeners not removed, MDC not cleared (see `logging-java-v2.instructions.md`).
 
 ## Serialisation
 

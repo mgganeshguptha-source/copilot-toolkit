@@ -305,14 +305,14 @@ for any specific finding to be expanded if needed.
 ## Option E — Generate JUnit tests for this code
 
 Generate JUnit 5 tests for the located code chain, following all rules
-in `.github/instructions/backend/java-testing.instructions.md`. That
+in `.github/instructions/backend/java-testing-v2.instructions.md`. That
 instruction file is automatically loaded by Copilot when generating
 Java test files — do not duplicate its rules here.
 
 Respond to the developer:
 
 > Generating JUnit 5 tests for the located code, following the team's
-> java-testing.instructions.md. The test files will be created under
+> java-testing-v2.instructions.md. The test files will be created under
 > src/test/java mirroring the production package structure.
 
 Then generate the tests per the instruction file's workflow — which
