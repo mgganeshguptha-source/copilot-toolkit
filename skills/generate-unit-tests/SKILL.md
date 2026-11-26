@@ -56,7 +56,7 @@ that defined the work. This breaks the loop in three ways:
 3. **Convention drift.** Field injection in test setup, real
    filesystem/network calls instead of mocks, `@Disabled` annotations
    left in to "deal with later", missing assertions — patterns the
-   team's `*-testing.instructions.md` files exist to prevent.
+   team's `*-testing*.instructions.md` files exist to prevent.
 
 Two failure modes this skill is designed to prevent:
 
@@ -185,17 +185,17 @@ Before doing anything else, run these checks in order:
   it confirms the scope and lets the developer steer the order.
 
 - **`.github/copilot-instructions.md` and the relevant
-  `*-testing.instructions.md` files exist.** If
+  `*-testing*.instructions.md` files exist.** If
   copilot-instructions.md is missing, warn as in the other skills. If
-  the relevant testing instructions file is missing (java-testing-v2.
-  instructions.md for backend files, angular-testing.instructions.md
+  the relevant testing instructions file is missing (java-testing-v2.instructions.md
+  for backend files, angular-testing.instructions.md
   for frontend files, ionic-angular-testing.instructions.md for
   mobile), warn separately:
 
   ```markdown
   > ## ⚠️ Missing testing instructions
   >
-  > I don't see .github/instructions/[java/angular/ionic-angular]-testing.instructions.md.
+  > I don't see .github/instructions/[java-testing-v2/angular-testing/ionic-angular-testing].instructions.md.
   >
   > **What this means:** the tests will be generated against generic
   > defaults (JUnit 5 + Mockito or Jasmine/Karma standard patterns)
@@ -248,7 +248,7 @@ file's tests, or whether the implementation step missed something.
 Once the coverage map is approved:
 
 - **Identify which testing instructions apply.** For the file under
-  test, list which `*-testing.instructions.md` and which other
+  test, list which `*-testing*.instructions.md` and which other
   `.github/instructions/` files have an applyTo glob that matches the
   *test file's* path. State briefly which ones applied:
 
