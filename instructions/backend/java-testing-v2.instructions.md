@@ -98,7 +98,7 @@ If none apply, do not ask — generate.
 
 - **Pure unit tests:** no Spring context, no real database. Deterministic and fast. Use `@ExtendWith(MockitoExtension.class)`.
 - **Repository tests:** `@DataJpaTest`. Use an in-memory database (H2) unless the codebase already uses Testcontainers — match the existing pattern.
-- **Controller tests:** `@WebMvcTest` with `MockMvc`. Assert status codes, response shape (the standard `Response<T>` envelope per `error-handling-java.instructions.md`), and controller-to-service interactions.
+- **Controller tests:** `@WebMvcTest` with `MockMvc`. Assert status codes, response shape (the standard `Response<T>` envelope per `error-handling-java-v2.instructions.md`), and controller-to-service interactions.
 - **Mappers (MapStruct), translators and utility classes** get their own isolated unit tests.
 - **Full integration tests:** `@SpringBootTest`. Mock external dependencies with `@MockBean`. Naming convention: `*IT.java` if the project separates integration tests via Failsafe; otherwise `*Test.java`.
 - **Do not use a real database connection in unit tests.** Repository tests use the in-memory or container DB only.

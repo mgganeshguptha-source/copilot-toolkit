@@ -65,7 +65,7 @@ Backend performance rules. Focus on the cheapest mistakes that cause production 
 - Avoid loading large result sets into memory. Stream from JDBC or use cursor pagination.
 - Be careful with `@Cacheable` on methods returning large objects — heap fills quickly.
 - Don't hold large objects in static fields ("just in case") — pinned in old gen forever.
-- Watch for memory leaks: thread-locals not cleared, listeners not removed, MDC not cleared (see `logging-java.instructions.md`).
+- Watch for memory leaks: thread-locals not cleared, listeners not removed, MDC not cleared (see `logging-java-v2.instructions.md`).
 
 ## Serialisation
 

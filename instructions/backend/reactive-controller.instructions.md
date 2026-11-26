@@ -56,7 +56,7 @@ Build the whole handler as a single reactive chain. A typical order is:
 
 ## Logging
 
-- Use `@Slf4j` (Lombok) — see `logging-java.instructions.md`. Log the entry of every
+- Use `@Slf4j` (Lombok) — see `logging-java-v2.instructions.md`. Log the entry of every
   endpoint with the `messageId` (request trace ID) and `appName`. **Never log the request
   payload** (may contain PHI), e.g.
   `log.info("Request received messageId:{} appName:{}", messageId, appName)`.

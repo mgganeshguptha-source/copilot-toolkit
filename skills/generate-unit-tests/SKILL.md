@@ -85,7 +85,7 @@ Everything below serves these two goals.
 | Test trivial getters / setters / generated code | Inflates the suite without catching defects | Test behaviour, not boilerplate |
 | Invent class names, method signatures, or import paths | Tests reference nonexistent symbols | Read the production file first; use exactly what is there |
 | Assert nothing (no expectations, no verification) | Test always passes; gives false confidence | Every test must have at least one assertion or verification call |
-| Skip the team's testing instruction files (java-testing, angular-testing, ionic-angular-testing) | Convention drift | Apply every matching instruction; state which ones applied |
+| Skip the team's testing instruction files (java-testing-v2, angular-testing, ionic-angular-testing) | Convention drift | Apply every matching instruction; state which ones applied |
 | Use random data, current time, or external IDs without controlling them | Flaky tests | Inject clocks, fix seeds, use test fixtures |
 | Copy values from existing test resources (JSON payloads, Postman exports, WireMock stubs) into new tests or resources | They may hold real member data taken from an environment | Build request/response JSON from the OpenAPI schema / DTO types with invented values (`sample-<field>`, `1`, `false`, `2026-01-01`); reuse an existing file only by referencing it, unchanged |
 | Force a value the production code can never receive — an invalid enum constant into a typed DTO via reflection, `Enum.valueOf`, a mocked getter returning the wrong type, `doReturn` on a typed getter | The test crashes in setup or asserts behaviour no real caller can trigger; a fixing step then bends production code (or the API contract) to make it pass | Test the rule where a real caller hits it — see "Testing request validation" below; if a case cannot happen at this layer, say so in "What I noticed" and do not write the test |
@@ -187,7 +187,7 @@ Before doing anything else, run these checks in order:
 - **`.github/copilot-instructions.md` and the relevant
   `*-testing.instructions.md` files exist.** If
   copilot-instructions.md is missing, warn as in the other skills. If
-  the relevant testing instructions file is missing (java-testing.
+  the relevant testing instructions file is missing (java-testing-v2.
   instructions.md for backend files, angular-testing.instructions.md
   for frontend files, ionic-angular-testing.instructions.md for
   mobile), warn separately:
@@ -252,8 +252,8 @@ Once the coverage map is approved:
   `.github/instructions/` files have an applyTo glob that matches the
   *test file's* path. State briefly which ones applied:
 
-  > Writing OwnerServiceTest.java — applying java-testing,
-  > java-conventions, logging-java (for log assertions if any).
+  > Writing OwnerServiceTest.java — applying java-testing-v2,
+  > java-conventions-v2, logging-java-v2 (for log assertions if any).
 
   This is not optional.
 
@@ -417,7 +417,7 @@ also needs (`.github/story-execution-logs/`).
 - **Production file tested:** path/to/ProductionFile.java
 - **Test file written:** path/to/ProductionFileTest.java
 - **Test framework:** JUnit 5 + Mockito | Jasmine + Karma | etc.
-- **Testing instructions applied:** java-testing, java-conventions
+- **Testing instructions applied:** java-testing-v2, java-conventions-v2
 - **Tests written:**
   - testNameOne (covers AC1)
   - testNameTwo (covers AC1 edge case)

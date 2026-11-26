@@ -706,7 +706,7 @@ exists to make every banned-action check visible to the reviewer.
 |---|---|
 | "Test is broken" | "Test expects empty page on no-match but production code throws OwnerNotFoundException — production-code-wrong (test correctly encodes AC2)" |
 | "Production code is wrong" | "Test asserts case-insensitive match but production code uses equalsIgnoreCase only on lastName, not on firstName — production-code-wrong (scope drift from AC1)" |
-| "Just flaky" | "Test asserts `Instant.now()` is within 1 second of the captured value — test-wrong (depends on real clock; needs injected Clock per java-testing.instructions.md)" |
+| "Just flaky" | "Test asserts `Instant.now()` is within 1 second of the captured value — test-wrong (depends on real clock; needs injected Clock per java-testing-v2.instructions.md)" |
 | "Probably env" | "Test failed because Karma can't find ChromeHeadless — environment (CI vs local browser config); not a code issue" |
 
 ### Calibrating skip / disabled investigation

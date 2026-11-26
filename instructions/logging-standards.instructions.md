@@ -4,7 +4,7 @@ applyTo: "**"
 
 # Logging Standards — Shared (Repo-Wide)
 
-This file defines the **cross-stack logging contract** that backend, web, and mobile must all honour. Stack-specific implementation rules live in `backend/logging-java.instructions.md` and `angular-frontend/logging-angular.instructions.md`.
+This file defines the **cross-stack logging contract** that backend, web, and mobile must all honour. Stack-specific implementation rules live in `backend/logging-java-v2.instructions.md` and `angular-frontend/logging-angular.instructions.md`.
 
 ## Correlation ID contract (mandatory across all stacks)
 

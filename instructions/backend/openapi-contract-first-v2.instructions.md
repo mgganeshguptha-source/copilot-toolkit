@@ -16,7 +16,7 @@ applyTo: "**/*.yml,**/openapi/**,**/pom.xml,src/main/java/**/controller/**/*.jav
 - Start with service and functionality description.
 - Each path defines: URL, HTTP method, `summary`, unique `operationId` (becomes the controller interface method), `tags` (group APIs into one controller), `parameters` (header/path), `requestBody`, `responses` per status code.
 - Models in `components/schemas`; mark mandatory fields with `required` so the validator rejects incomplete payloads.
-- Path naming follows `api-design.instructions.md`.
+- Path naming follows `api-design-v2.instructions.md`.
 
 ## Server code generation
 - openapi-generator Maven plugin: `executions/execution/configuration/inputSpec` points to the yml; output goes to the server-code module.

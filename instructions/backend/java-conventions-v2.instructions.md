@@ -18,7 +18,7 @@ applyTo: "src/main/java/**/*.java"
 - Mark injected dependencies `private final`.
 - Apply `@Transactional` on service-layer methods where a transactional boundary is required, not on controllers.
 - Lombok: selective annotations; `@Data` only when genuinely required, never on JPA entities — see `lombok-mapstruct-v2.instructions.md`.
-- Log through SLF4J (`@Slf4j`) — see `logging-java.instructions.md`. Never log secrets, tokens, or PII.
+- Log through SLF4J (`@Slf4j`) — see `logging-java-v2.instructions.md`. Never log secrets, tokens, or PII.
 - Keep controllers thin — no business logic. Business logic belongs in services.
 - Never build SQL or JPQL via string concatenation of user input.
 

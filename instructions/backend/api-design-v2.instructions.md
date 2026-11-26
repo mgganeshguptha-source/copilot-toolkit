@@ -4,7 +4,7 @@ applyTo: "src/main/java/**/*Controller.java,src/main/java/**/controller/**/*.jav
 
 # API Design Conventions — REST (Backend)
 
-Conventions for HTTP REST APIs this service exposes. Compounds with `error-handling-java.instructions.md` (response envelope), `openapi-contract-first-v2.instructions.md` (contract and generated interfaces) and `owasp-java.instructions.md` (authZ, injection).
+Conventions for HTTP REST APIs this service exposes. Compounds with `error-handling-java-v2.instructions.md` (response envelope), `openapi-contract-first-v2.instructions.md` (contract and generated interfaces) and `owasp-java.instructions.md` (authZ, injection).
 
 ## Contract first
 
@@ -58,7 +58,7 @@ Conventions for HTTP REST APIs this service exposes. Compounds with `error-handl
 
 ## Response shape
 
-- Success and error responses use the standard `Response<T>` envelope — see `error-handling-java.instructions.md`.
+- Success and error responses use the standard `Response<T>` envelope — see `error-handling-java-v2.instructions.md`.
 - Do not return a different envelope per endpoint.
 
 ## Request and response bodies
@@ -118,7 +118,7 @@ The page object above is the `payLoad` of the `Response<T>` envelope.
 
 ## Required headers
 
-- `messageId` — the upstream trace id; propagate it, never generate a new one downstream. See `logging-java.instructions.md`.
+- `messageId` — the upstream trace id; propagate it, never generate a new one downstream. See `logging-java-v2.instructions.md`.
 - `Content-Type` — set explicitly on requests with bodies
 - `Accept` — clients should set; default to `application/json`
 - `Authorization` — Bearer token (never API key in URL)

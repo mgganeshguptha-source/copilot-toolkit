@@ -17,4 +17,4 @@ applyTo: "src/main/java/**/*.java"
 ## Resilience, validation and logging
 - Timeouts and resilience are configured centrally (`client.mappings.<service>.timeout`, infrastructure), not hand-written per call.
 - Validate with `@Valid` + Bean Validation on generated models; use a filter returning an empty `Mono` only for rules the contract cannot express.
-- Logging uses `@Slf4j` (see `logging-java.instructions.md`).
+- Logging uses `@Slf4j` (see `logging-java-v2.instructions.md`).
